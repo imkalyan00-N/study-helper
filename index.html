@@ -3,22 +3,21 @@
 <head>
   <title>Handwritten Generator ✍️</title>
 </head>
-<body style="text-align:center; font-family:sans-serif;">
+<body style="text-align:center; margin-top:50px;">
 
   <h2>Handwritten Generator ✍️</h2>
 
-  <textarea id="inputText" placeholder="Enter text..." rows="4" cols="40"></textarea>
+  <textarea id="text" rows="5" cols="30" placeholder="Enter text..."></textarea>
   <br><br>
 
-  <button onclick="generateImage()">Generate</button>
+  <button onclick="generate()">Generate</button>
 
   <br><br>
-
-  <img id="output" style="max-width:90%;" />
+  <img id="output" width="300"/>
 
   <script>
-    async function generateImage() {
-      const text = document.getElementById("inputText").value;
+    async function generate() {
+      const text = document.getElementById("text").value;
 
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -30,7 +29,13 @@
 
       const data = await res.json();
 
-      document.getElementById("output").src = data.image;
+      console.log(data); // debug
+
+      if (data.image) {
+        document.getElementById("output").src = data.image;
+      } else {
+        alert("Error: " + JSON.stringify(data));
+      }
     }
   </script>
 
