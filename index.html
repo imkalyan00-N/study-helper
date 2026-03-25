@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Exam Notes Generator ✍️</title>
+  <title>Smart Handwritten Generator ✍️</title>
 
-  <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 
   <style>
@@ -21,7 +20,6 @@
 
     canvas {
       margin-top: 20px;
-      border-radius: 10px;
       background: #fff;
       box-shadow: 0 0 12px rgba(0,0,0,0.2);
     }
@@ -35,134 +33,129 @@
 
 <body>
 
-<h2>Exam Handwritten Generator ✍️</h2>
+<h2>Smart Handwritten Generator ✍️</h2>
 
 <textarea id="text" placeholder="Example:
-Q1: Explain DBMS
-A: DBMS is a system..."></textarea><br>
+What is DBMS?
+DBMS is a system to manage databases.
+
+Operating System
+OS manages hardware."></textarea><br>
 
 <button onclick="generate()">Generate</button>
-<button onclick="downloadImage()">Download Image</button>
-<button onclick="downloadPDF()">Download PDF</button>
 
 <br>
 <canvas id="canvas" width="800" height="1000"></canvas>
 
 <script>
-function drawPage(ctx, textLines) {
+
+function isHeading(line){
+  return line.length < 25 && line === line.toUpperCase();
+}
+
+function isQuestion(line){
+  return line.includes("?") || line.toLowerCase().startsWith("what") || line.toLowerCase().startsWith("define");
+}
+
+function generate(){
+  const text = document.getElementById("text").value;
+  if(!text){
+    alert("Enter text bro");
+    return;
+  }
+
+  const lines = text.split("\n");
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0,0,800,1000);
 
   // background
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, 800, 1000);
+  ctx.fillStyle="#fff";
+  ctx.fillRect(0,0,800,1000);
 
   // ruled lines
-  ctx.strokeStyle = "#e0e0e0";
-  for (let i = 60; i < 1000; i += 32) {
+  ctx.strokeStyle="#ddd";
+  for(let i=60;i<1000;i+=32){
     ctx.beginPath();
-    ctx.moveTo(0, i);
-    ctx.lineTo(800, i);
+    ctx.moveTo(0,i);
+    ctx.lineTo(800,i);
     ctx.stroke();
   }
 
-  // margin line
-  ctx.strokeStyle = "red";
+  // margin
+  ctx.strokeStyle="red";
   ctx.beginPath();
-  ctx.moveTo(60, 0);
-  ctx.lineTo(60, 1000);
+  ctx.moveTo(60,0);
+  ctx.lineTo(60,1000);
   ctx.stroke();
 
   let x = 80;
   let y = 80;
 
-  textLines.forEach(line => {
+  lines.forEach(line => {
 
-    // Heading (Q)
-    if (line.startsWith("Q")) {
-      ctx.font = "bold 32px 'Dancing Script'";
-      ctx.fillStyle = "#000";
+    line = line.trim();
+    if(!line){
+      y += 20;
+      return;
+    }
 
+    // HEADING
+    if(isHeading(line)){
+      ctx.font="bold 34px Dancing Script";
+      ctx.fillStyle="black";
       ctx.fillText(line, x, y);
 
-      // underline
       let width = ctx.measureText(line).width;
+
       ctx.beginPath();
-      ctx.moveTo(x, y + 10);
-      ctx.lineTo(x + width, y + 10);
+      ctx.moveTo(x, y+10);
+      ctx.lineTo(x+width, y+10);
       ctx.stroke();
 
       y += 40;
     }
 
-    // Answer (A)
-    else if (line.startsWith("A")) {
-      ctx.font = "28px 'Dancing Script'";
+    // QUESTION
+    else if(isQuestion(line)){
+      ctx.font="bold 30px Dancing Script";
+      ctx.fillStyle="black";
+      ctx.fillText("Q. " + line, x, y);
+      y += 35;
+    }
+
+    // ANSWER
+    else{
+      ctx.font="28px Dancing Script";
+      ctx.fillStyle="blue";
+
       let words = line.split(" ");
-      let lineText = "";
+      let lineText="";
 
-      words.forEach(word => {
-        let testLine = lineText + word + " ";
-        let width = ctx.measureText(testLine).width;
+      words.forEach(word=>{
+        let test=lineText+word+" ";
+        let width=ctx.measureText(test).width;
 
-        if (width > 680) {
-          ctx.fillText(lineText, x, y);
-          lineText = word + " ";
-          y += 32;
-        } else {
-          lineText = testLine;
+        if(width>650){
+          ctx.fillText(lineText,x,y);
+          lineText=word+" ";
+          y+=30;
+        }else{
+          lineText=test;
         }
       });
 
-      ctx.fillText(lineText, x, y);
-      y += 40;
+      ctx.fillText(lineText,x,y);
+      y+=35;
     }
 
-    // Normal text
-    else {
-      ctx.font = "28px 'Dancing Script'";
-      ctx.fillText(line, x, y);
-      y += 32;
-    }
   });
+
+  console.log("Smart render done ✅");
 }
 
-// MAIN GENERATE
-function generate() {
-  const text = document.getElementById("text").value;
-  const lines = text.split("\n");
-
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-
-  drawPage(ctx, lines);
-}
-
-// IMAGE DOWNLOAD
-function downloadImage() {
-  const canvas = document.getElementById("canvas");
-  const link = document.createElement("a");
-  link.download = "exam-notes.png";
-  link.href = canvas.toDataURL();
-  link.click();
-}
-
-// MULTI PAGE PDF
-function downloadPDF() {
-  const { jsPDF } = window.jspdf;
-
-  const pdf = new jsPDF();
-  const canvas = document.getElementById("canvas");
-
-  const img = canvas.toDataURL("image/png");
-
-  pdf.addImage(img, "PNG", 10, 10, 180, 250);
-  pdf.addPage();
-  pdf.addImage(img, "PNG", 10, 10, 180, 250);
-
-  pdf.save("exam-notes.pdf");
-}
 </script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 </body>
 </html>
