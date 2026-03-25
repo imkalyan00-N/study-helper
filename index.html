@@ -7,16 +7,18 @@
 
   <h2>Handwritten Generator ✍️</h2>
 
-  <textarea id="text" rows="5" cols="40" placeholder="Enter text..."></textarea><br><br>
+  <textarea id="inputText" placeholder="Enter text..." rows="4" cols="40"></textarea>
+  <br><br>
 
-  <button onclick="generate()">Generate</button>
+  <button onclick="generateImage()">Generate</button>
 
   <br><br>
+
   <img id="output" style="max-width:90%;" />
 
   <script>
-    async function generate() {
-      const text = document.getElementById("text").value;
+    async function generateImage() {
+      const text = document.getElementById("inputText").value;
 
       const res = await fetch("/api/generate", {
         method: "POST",
