@@ -1,32 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Exam Notes ✍️</title>
+  <title>Ultra Real Notes ✍️</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 
   <style>
     body {
       text-align: center;
-      background: #ececec;
+      background: #eaeaea;
       font-family: sans-serif;
     }
 
     textarea {
       width: 320px;
       height: 130px;
-      margin-top: 15px;
       display: none;
+      margin-top: 10px;
     }
 
     canvas {
       margin-top: 20px;
-      background: #fffef8;
-      box-shadow: 0 0 15px rgba(0,0,0,0.25);
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
     }
 
     button {
-      margin: 6px;
+      margin: 5px;
       padding: 10px;
     }
   </style>
@@ -36,25 +35,18 @@
 
 <h2>Handwritten Notes ✍️</h2>
 
-<!-- TOP CONTROLS -->
-<div>
-  <button onclick="selectPaper('ruled')">Ruled</button>
-  <button onclick="selectPaper('white')">White</button>
-  <button onclick="generate()">Generate</button>
-</div>
+<button onclick="selectPaper('ruled')">Ruled</button>
+<button onclick="selectPaper('white')">White</button>
+<button onclick="generate()">Generate</button>
 
-<textarea id="text" placeholder="Type notes..."></textarea>
+<textarea id="text"></textarea>
 
 <br>
 <canvas id="canvas"></canvas>
 
-<!-- DOWNLOAD -->
-<div style="margin-top:20px;">
+<div>
   <button onclick="downloadImage()">Download Image</button>
-  <button onclick="downloadPDF()">Download PDF</button>
 </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
 
@@ -65,58 +57,64 @@ function selectPaper(type){
   document.getElementById("text").style.display="block";
 }
 
-// detection
-function isHeading(line){
-  return line === line.toUpperCase() && line.includes(" ") && line.length < 40;
-}
+// realistic paper texture
+function drawPaper(ctx,h){
+  ctx.fillStyle="#fdfcf7";
+  ctx.fillRect(0,0,800,h);
 
-function isQuestion(line){
-  return line.trim().endsWith("?");
-}
-
-function isCode(line){
-  return /[{}();=<>]/.test(line);
-}
-
-// underline
-function drawUnderline(ctx,x,y,w){
-  ctx.beginPath();
-  for(let i=0;i<=w;i+=5){
-    let wave=Math.sin(i*0.05)*1;
-    ctx.lineTo(x+i,y+6+wave);
+  // noise texture
+  for(let i=0;i<5000;i++){
+    let x=Math.random()*800;
+    let y=Math.random()*h;
+    ctx.fillStyle=`rgba(0,0,0,${Math.random()*0.03})`;
+    ctx.fillRect(x,y,1,1);
   }
-  ctx.stroke();
-}
-
-// paper
-function drawPaper(ctx,height){
-  ctx.fillStyle="#fffef8";
-  ctx.fillRect(0,0,800,height);
 
   if(paperType==="ruled"){
-    ctx.strokeStyle="rgba(0,120,255,0.35)";
-
-    for(let i=60;i<height;i+=30){
+    ctx.strokeStyle="rgba(100,150,255,0.25)";
+    for(let i=60;i<h;i+=30){
       ctx.beginPath();
       ctx.moveTo(0,i);
       ctx.lineTo(800,i);
       ctx.stroke();
     }
 
-    ctx.strokeStyle="rgba(255,0,0,0.5)";
+    ctx.strokeStyle="rgba(255,0,0,0.3)";
     ctx.beginPath();
     ctx.moveTo(70,0);
-    ctx.lineTo(70,height);
+    ctx.lineTo(70,h);
     ctx.stroke();
   }
 }
 
-// MAIN
+// handwriting effect
+function drawText(ctx,text,x,y){
+  let offset=0;
+
+  for(let char of text){
+
+    let rotate=(Math.random()-0.5)*0.08;
+    let upDown=(Math.random()-0.5)*2;
+
+    ctx.save();
+    ctx.translate(x+offset,y+upDown);
+    ctx.rotate(rotate);
+
+    ctx.fillStyle=`rgba(0,0,150,${0.8+Math.random()*0.2})`;
+
+    ctx.fillText(char,0,0);
+
+    ctx.restore();
+
+    offset += ctx.measureText(char).width + Math.random()*1;
+  }
+}
+
 function generate(){
   const text=document.getElementById("text").value;
   const lines=text.split("\n");
 
-  let height = 1000 + (lines.length * 30); // dynamic height
+  let height=1000 + lines.length*30;
 
   const canvas=document.getElementById("canvas");
   canvas.width=800;
@@ -126,99 +124,42 @@ function generate(){
 
   drawPaper(ctx,height);
 
-  let x=90;
-  let y=90;
+  ctx.font="20px Dancing Script";
+
+  let y=80;
 
   lines.forEach(line=>{
+    if(!line){ y+=20; return; }
 
-    line=line.trim();
-    if(!line){ y+=18; return; }
+    let words=line.split(" ");
+    let lineText="";
 
-    // code
-    if(isCode(line)){
-      ctx.font="18px monospace";
-      ctx.fillStyle="black";
-      ctx.fillText(line,x,y);
-      y+=26;
-      return;
-    }
+    words.forEach(word=>{
+      let test=lineText+word+" ";
+      let w=ctx.measureText(test).width;
 
-    // heading
-    if(isHeading(line)){
-      ctx.font="bold 20px Dancing Script";
-      ctx.fillStyle="#111";
-      ctx.fillText(line,x,y);
+      if(w>650){
+        drawText(ctx,lineText,90,y);
+        lineText=word+" ";
+        y+=28;
+      }else{
+        lineText=test;
+      }
+    });
 
-      let w=ctx.measureText(line).width;
-      drawUnderline(ctx,x,y,w);
-
-      y+=26;
-    }
-
-    // question
-    else if(isQuestion(line)){
-      ctx.font="bold 19px Dancing Script";
-      ctx.fillStyle="#111";
-      ctx.fillText("Q. "+line,x,y);
-      y+=24;
-    }
-
-    // answer
-    else{
-      ctx.font="18px Dancing Script";
-
-      let words=line.split(" ");
-      let temp="";
-
-      words.forEach(word=>{
-        let test=temp+word+" ";
-        let w=ctx.measureText(test).width;
-
-        if(w>650){
-          ctx.save();
-          ctx.rotate((Math.random()-0.5)*0.01); // slight tilt
-          ctx.fillStyle=`rgb(0,0,${140+Math.random()*30})`;
-          ctx.fillText(temp,x,y);
-          ctx.restore();
-
-          temp=word+" ";
-          y+=24;
-        }else{
-          temp=test;
-        }
-      });
-
-      ctx.save();
-      ctx.rotate((Math.random()-0.5)*0.01);
-      ctx.fillStyle=`rgb(0,0,${140+Math.random()*30})`;
-      ctx.fillText(temp,x,y);
-      ctx.restore();
-
-      y+=28;
-    }
-
+    drawText(ctx,lineText,90,y);
+    y+=32;
   });
+
 }
 
-// download image
+// download
 function downloadImage(){
   const canvas=document.getElementById("canvas");
   const link=document.createElement("a");
   link.download="notes.png";
   link.href=canvas.toDataURL();
   link.click();
-}
-
-// download pdf
-function downloadPDF(){
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
-
-  const canvas=document.getElementById("canvas");
-  const img = canvas.toDataURL("image/png");
-
-  pdf.addImage(img,'PNG',10,10,190,280);
-  pdf.save("notes.pdf");
 }
 
 </script>
