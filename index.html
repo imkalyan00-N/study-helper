@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<body style="text-align:center">
+
+<h2>Handwritten Generator ✍️</h2>
+
+<textarea id="text" placeholder="Enter text"></textarea><br><br>
+
+<button onclick="gen()">Generate</button>
+
+<br><br>
+
+<img id="img" width="90%"/>
+
+<script>
+async function gen(){
+
+  let text = document.getElementById("text").value;
+
+  let res = await fetch("https://YOUR-VERCEL-LINK/api/generate", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({text})
+  });
+
+  let data = await res.json();
+
+  document.getElementById("img").src = data.image;
+}
+</script>
+
+</body>
+</html>
