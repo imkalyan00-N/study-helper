@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Handwritten Notes ✍️</title>
+  <title>Exam Notes Generator ✍️</title>
 
+  <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 
   <style>
@@ -14,7 +15,7 @@
 
     textarea {
       width: 320px;
-      height: 100px;
+      height: 120px;
       margin-top: 20px;
     }
 
@@ -26,7 +27,7 @@
     }
 
     button {
-      margin: 10px;
+      margin: 8px;
       padding: 10px;
     }
   </style>
@@ -34,95 +35,133 @@
 
 <body>
 
-<h2>Handwritten Notes Generator ✍️</h2>
+<h2>Exam Handwritten Generator ✍️</h2>
 
-<textarea id="text" placeholder="Type your answer..."></textarea><br>
+<textarea id="text" placeholder="Example:
+Q1: Explain DBMS
+A: DBMS is a system..."></textarea><br>
 
 <button onclick="generate()">Generate</button>
 <button onclick="downloadImage()">Download Image</button>
 <button onclick="downloadPDF()">Download PDF</button>
 
 <br>
-<canvas id="canvas" width="800" height="600"></canvas>
+<canvas id="canvas" width="800" height="1000"></canvas>
 
 <script>
-function generate() {
-  const text = document.getElementById("text").value;
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
+function drawPage(ctx, textLines) {
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Paper
+  // background
   ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, 800, 1000);
 
-  // Lines
+  // ruled lines
   ctx.strokeStyle = "#e0e0e0";
-  for (let i = 50; i < canvas.height; i += 32) {
+  for (let i = 60; i < 1000; i += 32) {
     ctx.beginPath();
     ctx.moveTo(0, i);
-    ctx.lineTo(canvas.width, i);
+    ctx.lineTo(800, i);
     ctx.stroke();
   }
 
-  // Margin
+  // margin line
   ctx.strokeStyle = "red";
   ctx.beginPath();
   ctx.moveTo(60, 0);
-  ctx.lineTo(60, canvas.height);
+  ctx.lineTo(60, 1000);
   ctx.stroke();
 
-  ctx.font = "30px 'Dancing Script'";
-  ctx.textBaseline = "middle";
-
   let x = 80;
-  let y = 70;
+  let y = 80;
 
-  const words = text.split(" ");
+  textLines.forEach(line => {
 
-  words.forEach(word => {
-    let tilt = (Math.random() - 0.5) * 0.15;
-    let vertical = Math.sin(x * 0.05) * 3 + (Math.random() - 0.5) * 2;
-    let ink = 100 + Math.random() * 100;
+    // Heading (Q)
+    if (line.startsWith("Q")) {
+      ctx.font = "bold 32px 'Dancing Script'";
+      ctx.fillStyle = "#000";
 
-    ctx.save();
-    ctx.translate(x, y + vertical);
-    ctx.rotate(tilt);
-    ctx.fillStyle = `rgb(0,0,${ink})`;
-    ctx.fillText(word, 0, 0);
-    ctx.restore();
+      ctx.fillText(line, x, y);
 
-    x += ctx.measureText(word).width + (5 + Math.random() * 10);
+      // underline
+      let width = ctx.measureText(line).width;
+      ctx.beginPath();
+      ctx.moveTo(x, y + 10);
+      ctx.lineTo(x + width, y + 10);
+      ctx.stroke();
 
-    if (x > 720) {
-      x = 80;
-      y += 38 + Math.random() * 6;
+      y += 40;
+    }
+
+    // Answer (A)
+    else if (line.startsWith("A")) {
+      ctx.font = "28px 'Dancing Script'";
+      let words = line.split(" ");
+      let lineText = "";
+
+      words.forEach(word => {
+        let testLine = lineText + word + " ";
+        let width = ctx.measureText(testLine).width;
+
+        if (width > 680) {
+          ctx.fillText(lineText, x, y);
+          lineText = word + " ";
+          y += 32;
+        } else {
+          lineText = testLine;
+        }
+      });
+
+      ctx.fillText(lineText, x, y);
+      y += 40;
+    }
+
+    // Normal text
+    else {
+      ctx.font = "28px 'Dancing Script'";
+      ctx.fillText(line, x, y);
+      y += 32;
     }
   });
 }
 
-// Download Image
+// MAIN GENERATE
+function generate() {
+  const text = document.getElementById("text").value;
+  const lines = text.split("\n");
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  drawPage(ctx, lines);
+}
+
+// IMAGE DOWNLOAD
 function downloadImage() {
   const canvas = document.getElementById("canvas");
   const link = document.createElement("a");
-  link.download = "handwritten.png";
+  link.download = "exam-notes.png";
   link.href = canvas.toDataURL();
   link.click();
 }
 
-// Download PDF
+// MULTI PAGE PDF
 function downloadPDF() {
-  const canvas = document.getElementById("canvas");
-  const imgData = canvas.toDataURL("image/png");
+  const { jsPDF } = window.jspdf;
 
-  const pdf = new window.jspdf.jsPDF();
-  pdf.addImage(imgData, 'PNG', 10, 10, 180, 120);
-  pdf.save("handwritten.pdf");
+  const pdf = new jsPDF();
+  const canvas = document.getElementById("canvas");
+
+  const img = canvas.toDataURL("image/png");
+
+  pdf.addImage(img, "PNG", 10, 10, 180, 250);
+  pdf.addPage();
+  pdf.addImage(img, "PNG", 10, 10, 180, 250);
+
+  pdf.save("exam-notes.pdf");
 }
 </script>
 
-<!-- PDF library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 </body>
