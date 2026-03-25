@@ -126,45 +126,94 @@ function generate(){
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
-  let words = text.split(" ");
-  let linesEstimate = words.length / 6;
-  let height = Math.max(1000, linesEstimate * 50);
+  let lines = text.split("\n");
 
+  let height = Math.max(1000, lines.length * 60);
   canvas.height = height;
 
   ctx.clearRect(0,0,800,height);
   drawPaper(ctx,height);
 
-  ctx.fillStyle="rgba(30,58,138,0.95)";
   ctx.font="26px 'Dancing Script'";
+  ctx.fillStyle="rgba(30,58,138,0.95)";
 
   let marginLeft = 90;
-  let lineGap = 40; // same as ruled lines
+  let lineGap = 40;
   let maxWidth = 650;
 
   let x = marginLeft;
-  let y = 100; // EXACTLY first line
+  let y = 100;
 
-  let wordsArr = text.split(" ");
+  lines.forEach(line => {
 
-  wordsArr.forEach(word => {
+    line = line.trim();
 
-    let wordWidth = ctx.measureText(word).width;
-
-    if(x + wordWidth > marginLeft + maxWidth){
-      x = marginLeft;
-      y += lineGap; // align to next ruled line
+    if(line === ""){
+      y += lineGap;
+      return;
     }
 
-    let tilt = (Math.random()*2 -1) * 0.05;
+    let isQuestion = line.endsWith("?");
+    let isHeading = line.length < 40 && line === line.toUpperCase();
+    let isCode = line.includes("{") || line.includes("}") || line.includes(";");
 
-    ctx.save();
-    ctx.translate(x,y - 5); // 🔥 baseline adjust (IMPORTANT)
-    ctx.rotate(tilt);
-    ctx.fillText(word,0,0);
-    ctx.restore();
+    // HEADING
+    if(isHeading){
+      ctx.fillStyle="#000";
 
-    x += wordWidth + 10;
+      ctx.fillText(line, marginLeft, y);
+
+      // underline
+      ctx.beginPath();
+      ctx.moveTo(marginLeft, y+5);
+      ctx.lineTo(marginLeft + ctx.measureText(line).width, y+5);
+      ctx.strokeStyle="#000";
+      ctx.lineWidth=1;
+      ctx.stroke();
+
+      y += lineGap;
+      ctx.fillStyle="rgba(30,58,138,0.95)";
+      x = marginLeft;
+      return;
+    }
+
+    // QUESTION
+    if(isQuestion){
+      ctx.fillStyle="#000";
+      ctx.fillText(line, marginLeft, y);
+
+      y += lineGap;
+      ctx.fillStyle="rgba(30,58,138,0.95)";
+      x = marginLeft + 10;
+      return;
+    }
+
+    // NORMAL / CODE
+    let words = line.split(" ");
+
+    words.forEach(word => {
+
+      let wordWidth = ctx.measureText(word).width;
+
+      if(x + wordWidth > marginLeft + maxWidth){
+        x = marginLeft + 10;
+        y += lineGap;
+      }
+
+      let tilt = (Math.random()*2 -1) * 0.05;
+
+      ctx.save();
+      ctx.translate(x,y - 5);
+      ctx.rotate(tilt);
+      ctx.fillText(word,0,0);
+      ctx.restore();
+
+      x += wordWidth + 10;
+
+    });
+
+    y += lineGap;
+    x = marginLeft;
 
   });
 
@@ -178,7 +227,6 @@ function downloadImage(){
   link.click();
 }
 
-// 🔥 CLEAN PDF (SMALL GAP ONLY)
 function downloadPDF(){
 
   const { jsPDF } = window.jspdf;
@@ -192,7 +240,6 @@ function downloadPDF(){
   const imgWidth = pageWidth;
   const scale = imgWidth / canvas.width;
 
-  // 🔥 SMALL GAP ONLY (NO BIG BLACK LINE)
   const pageCanvasHeight = (pageHeight / scale) - 10;
 
   let y = 0;
