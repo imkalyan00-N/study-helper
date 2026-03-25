@@ -53,7 +53,7 @@ async function formatWithAI(input){
     const res = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "mistralai/mistral-7b-instruct",
+        model: "openchat/openchat-7b", // ✅ fixed free model
         messages: [
           {
             role: "system",
@@ -67,9 +67,9 @@ async function formatWithAI(input){
       },
       {
         headers: {
-          // 🔥 DUMMY KEY ADDED
           "Authorization": "Bearer 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",
-          "HTTP-Referer": window.location.href,
+          "Content-Type": "application/json",
+          "HTTP-Referer": window.location.origin,
           "X-Title": "Handwriting App"
         }
       }
@@ -78,14 +78,14 @@ async function formatWithAI(input){
     return res.data.choices[0].message.content;
 
   }catch(e){
-    alert("API error ⚠️");
-    console.log(e);
+    console.log(e.response?.data || e);
+    alert("API error bro ⚠️ check console");
     return input;
   }
 
 }
 
-// 🔥 GENERATE BUTTON
+// 🔥 GENERATE
 async function generate(){
 
   const raw = document.getElementById("text").value;
@@ -95,7 +95,7 @@ async function generate(){
   draw(formatted);
 }
 
-// ✍️ HANDWRITING DRAW
+// ✍️ DRAW HANDWRITING
 function draw(text){
 
   const canvas = document.getElementById("canvas");
