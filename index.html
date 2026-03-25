@@ -180,7 +180,7 @@ function downloadImage(){
   link.click();
 }
 
-// 🔥 PREMIUM MULTI PAGE PDF (NO CUT ISSUE)
+// 🔥 SMART PDF (NO BLACK LINE CUT)
 function downloadPDF(){
 
   const { jsPDF } = window.jspdf;
@@ -193,7 +193,9 @@ function downloadPDF(){
 
   const imgWidth = pageWidth;
   const scale = imgWidth / canvas.width;
-  const pageCanvasHeight = pageHeight / scale;
+
+  // safe height (avoid cutting lines)
+  const pageCanvasHeight = (pageHeight / scale) - 40;
 
   let y = 0;
   let pageCount = 0;
@@ -224,7 +226,7 @@ function downloadPDF(){
     pageCount++;
   }
 
-  pdf.save("premium_notes.pdf");
+  pdf.save("perfect_notes.pdf");
 }
 
 </script>
