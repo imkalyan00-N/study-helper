@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Smart Handwritten Generator ✍️</title>
+  <title>Exam Handwriting ✍️</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 
@@ -14,7 +14,7 @@
 
     textarea {
       width: 320px;
-      height: 120px;
+      height: 130px;
       margin-top: 20px;
     }
 
@@ -33,14 +33,9 @@
 
 <body>
 
-<h2>Smart Handwritten Generator ✍️</h2>
+<h2>Realistic Handwritten Notes ✍️</h2>
 
-<textarea id="text" placeholder="Example:
-What is DBMS?
-DBMS is a system to manage databases.
-
-Operating System
-OS manages hardware."></textarea><br>
+<textarea id="text" placeholder="Type notes..."></textarea><br>
 
 <button onclick="generate()">Generate</button>
 
@@ -50,7 +45,7 @@ OS manages hardware."></textarea><br>
 <script>
 
 function isHeading(line){
-  return line.length < 25 && line === line.toUpperCase();
+  return line.length < 30 && line === line.toUpperCase();
 }
 
 function isQuestion(line){
@@ -70,13 +65,13 @@ function generate(){
 
   ctx.clearRect(0,0,800,1000);
 
-  // background
+  // paper
   ctx.fillStyle="#fff";
   ctx.fillRect(0,0,800,1000);
 
   // ruled lines
   ctx.strokeStyle="#ddd";
-  for(let i=60;i<1000;i+=32){
+  for(let i=60;i<1000;i+=30){
     ctx.beginPath();
     ctx.moveTo(0,i);
     ctx.lineTo(800,i);
@@ -103,32 +98,32 @@ function generate(){
 
     // HEADING
     if(isHeading(line)){
-      ctx.font="bold 34px Dancing Script";
+      ctx.font="bold 28px Dancing Script";
       ctx.fillStyle="black";
       ctx.fillText(line, x, y);
 
       let width = ctx.measureText(line).width;
 
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(x, y+10);
-      ctx.lineTo(x+width, y+10);
+      ctx.moveTo(x, y + 6);
+      ctx.lineTo(x + width, y + 6);
       ctx.stroke();
 
-      y += 40;
+      y += 35;
     }
 
     // QUESTION
     else if(isQuestion(line)){
-      ctx.font="bold 30px Dancing Script";
+      ctx.font="bold 26px Dancing Script";
       ctx.fillStyle="black";
       ctx.fillText("Q. " + line, x, y);
-      y += 35;
+      y += 30;
     }
 
     // ANSWER
     else{
-      ctx.font="28px Dancing Script";
-      ctx.fillStyle="blue";
+      ctx.font="24px Dancing Script";
 
       let words = line.split(" ");
       let lineText="";
@@ -138,21 +133,30 @@ function generate(){
         let width=ctx.measureText(test).width;
 
         if(width>650){
+          
+          // ✍️ PEN EFFECT (main feature)
+          let ink = 120 + Math.random()*60;
+          ctx.fillStyle = `rgb(0,0,${ink})`;
+
           ctx.fillText(lineText,x,y);
+
           lineText=word+" ";
-          y+=30;
+          y+=28;
         }else{
           lineText=test;
         }
       });
 
+      let ink = 120 + Math.random()*60;
+      ctx.fillStyle = `rgb(0,0,${ink})`;
+
       ctx.fillText(lineText,x,y);
-      y+=35;
+      y+=32;
     }
 
   });
 
-  console.log("Smart render done ✅");
+  console.log("Realistic pen effect added ✅");
 }
 
 </script>
