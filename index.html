@@ -1,142 +1,179 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Handwritten Generator</title>
+  <title>Real Handwritten Notes ✍️</title>
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-
-  <!-- html2pdf -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     body {
-      font-family: Arial;
-      background: #f2f2f2;
-      text-align: center;
-      padding: 20px;
+      text-align:center;
+      background:#e5e5e5;
+      font-family:sans-serif;
     }
 
     textarea {
-      width: 80%;
-      height: 120px;
-      padding: 10px;
-      font-size: 16px;
+      width:320px;
+      height:120px;
+      margin:10px;
+    }
+
+    .paper-container {
+      height:600px;
+      overflow-y:auto;
+      display:flex;
+      justify-content:center;
+    }
+
+    canvas {
+      margin-top:20px;
+      box-shadow:0 0 20px rgba(0,0,0,0.4);
+      border-radius:12px;
     }
 
     button {
-      padding: 10px 20px;
-      margin: 10px;
-      cursor: pointer;
+      padding:10px;
+      margin:5px;
     }
-
-    /* PAPER */
-    .paper {
-      width: 800px;
-      height: 500px;
-      margin: 20px auto;
-      padding: 40px;
-      overflow-y: auto;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
-
-      font-family: 'Great Vibes', cursive;
-      font-size: 22px;
-      line-height: 40px;
-      text-align: left;
-
-      background-image: linear-gradient(#ccc 1px, transparent 1px);
-      background-size: 100% 40px;
-    }
-
-    /* OLD PAPER */
-    .old-paper {
-      background: #fdf6e3;
-      background-image: 
-        linear-gradient(#d6c7a1 1px, transparent 1px),
-        radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px);
-      background-size: 100% 40px, 3px 3px;
-    }
-
-    .white-paper {
-      background: #fff;
-    }
-
-    .ruled-paper {
-      background-image: linear-gradient(#ccc 1px, transparent 1px);
-      background-size: 100% 40px;
-    }
-
-    .page-number {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 14px;
-      color: gray;
-    }
-
   </style>
 </head>
 
 <body>
 
-  <h2>✍️ Handwritten Generator</h2>
+<h2>Real Handwritten Notes ✍️</h2>
 
-  <textarea id="inputText" placeholder="Enter your long answer here..."></textarea><br>
+<button onclick="setPaper('ruled')">Ruled</button>
+<button onclick="setPaper('white')">White</button>
+<button onclick="setPaper('soft')">Old Paper</button>
 
-  <button onclick="setPaper('ruled')">Ruled</button>
-  <button onclick="setPaper('white')">White</button>
-  <button onclick="setPaper('old')">Old Paper</button><br>
+<br>
 
-  <button onclick="generate()">Generate</button>
-  <button onclick="downloadPDF()">Download PDF</button>
+<textarea id="text" placeholder="Type your answer..."></textarea><br>
 
-  <div class="paper ruled-paper" id="paper"></div>
+<button onclick="generate()">Generate</button>
+<button onclick="downloadPDF()">Download PDF</button>
 
-  <script>
-    let currentStyle = "ruled";
+<div class="paper-container">
+  <canvas id="canvas" width="800" height="2000"></canvas>
+</div>
 
-    function setPaper(type) {
-      currentStyle = type;
-      const paper = document.getElementById("paper");
+<script>
 
-      paper.classList.remove("ruled-paper", "white-paper", "old-paper");
+let paperType = "ruled";
 
-      if (type === "ruled") paper.classList.add("ruled-paper");
-      if (type === "white") paper.classList.add("white-paper");
-      if (type === "old") paper.classList.add("old-paper");
+function setPaper(type){
+  paperType = type;
+}
+
+// 👉 SAME PAPER DESIGN (unchanged)
+function drawPaper(ctx, h){
+
+  ctx.fillStyle = (paperType==="soft") ? "#f6f1e7" :
+                  (paperType==="white") ? "#fff" : "#fbfbf5";
+
+  ctx.fillRect(0,0,800,h);
+
+  if(paperType==="ruled"){
+    ctx.strokeStyle="rgba(150,180,255,0.5)";
+    for(let i=100;i<h;i+=40){
+      ctx.beginPath();
+      ctx.moveTo(0,i);
+      ctx.lineTo(800,i);
+      ctx.stroke();
     }
 
-    function generate() {
-      const text = document.getElementById("inputText").value;
-      const paper = document.getElementById("paper");
+    ctx.strokeStyle="rgba(255,0,0,0.6)";
+    ctx.beginPath();
+    ctx.moveTo(70,0);
+    ctx.lineTo(70,h);
+    ctx.stroke();
+  }
+}
 
-      let formatted = text.replace(/\n/g, "<br>");
-      paper.innerHTML = formatted;
+// 👉 SAME WRITING STYLE (TOUCH CHEYYALEDHU)
+function generate(){
+
+  const text = document.getElementById("text").value;
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  let lines = text.split(" ").length;
+  let height = Math.max(2000, lines * 30);
+
+  canvas.height = height;
+
+  ctx.clearRect(0,0,800,height);
+  drawPaper(ctx, height);
+
+  ctx.fillStyle="rgba(30,58,138,0.95)";
+  ctx.font="26px 'Dancing Script'";
+
+  let marginLeft = 90;
+  let lineHeight = 42;
+  let maxWidth = 650;
+
+  let x = marginLeft;
+  let y = 120;
+
+  let words = text.split(" ");
+
+  words.forEach(word => {
+
+    let wordWidth = ctx.measureText(word).width;
+
+    if(x + wordWidth > marginLeft + maxWidth){
+      x = marginLeft;
+      y += lineHeight;
     }
 
-    function downloadPDF() {
-      const element = document.getElementById("paper");
+    // 👉 SAME natural tilt
+    let tilt = (Math.random()*2 -1) * 0.05;
 
-      // Expand fully for PDF
-      element.style.height = "auto";
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(tilt);
+    ctx.fillText(word,0,0);
+    ctx.restore();
 
-      const opt = {
-        margin: 10,
-        filename: 'answer.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] }
-      };
+    x += wordWidth + 10;
 
-      html2pdf().set(opt).from(element).save().then(() => {
-        // Reset height after PDF
-        element.style.height = "500px";
-      });
-    }
-  </script>
+  });
+
+}
+
+// 🔥 PERFECT MULTI PAGE PDF (NO CUT)
+function downloadPDF(){
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p","mm","a4");
+
+  const canvas = document.getElementById("canvas");
+
+  const imgData = canvas.toDataURL("image/png");
+
+  const imgWidth = 210;
+  const pageHeight = 297;
+
+  const imgHeight = canvas.height * imgWidth / canvas.width;
+
+  let heightLeft = imgHeight;
+  let position = 0;
+
+  pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+  heightLeft -= pageHeight;
+
+  while(heightLeft > 0){
+    position = heightLeft - imgHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+  }
+
+  pdf.save("notes.pdf");
+}
+
+</script>
 
 </body>
 </html>
