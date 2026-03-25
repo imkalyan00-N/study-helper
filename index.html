@@ -1,34 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AI Handwritten Notes ✍️</title>
+  <title>Real Handwritten Notes ✍️</title>
 
-  <!-- Handwriting font -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-
-  <!-- FREE AI -->
-  <script src="https://js.puter.com/v2/"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    body{
+    body {
       text-align:center;
       background:#e5e5e5;
       font-family:sans-serif;
     }
 
-    textarea{
+    textarea {
       width:320px;
       height:120px;
       margin:10px;
     }
 
-    canvas{
+    .paper-container{
+      height:600px;
+      overflow-y:auto;
+      display:flex;
+      justify-content:center;
+    }
+
+    canvas {
       margin-top:20px;
       box-shadow:0 0 20px rgba(0,0,0,0.4);
       border-radius:12px;
     }
 
-    button{
+    button {
       padding:10px;
       margin:5px;
     }
@@ -37,133 +41,217 @@
 
 <body>
 
-<h2>AI Handwritten Notes ✍️</h2>
+<h2>Real Handwritten Notes ✍️</h2>
 
-<textarea id="text" placeholder="Type your question or rough answer..."></textarea><br>
-
-<button onclick="generateAI()">Generate</button>
+<button onclick="setPaper('ruled')">Ruled</button>
+<button onclick="setPaper('white')">White</button>
+<button onclick="setPaper('soft')">Old Paper</button>
 
 <br>
-<canvas id="canvas" width="800" height="1000"></canvas>
+
+<textarea id="text" placeholder="Type your answer..."></textarea><br>
+
+<button onclick="generate()">Generate</button>
+<button onclick="downloadImage()">Download Image</button>
+<button onclick="downloadPDF()">Download PDF</button>
+
+<br>
+
+<div class="paper-container">
+  <canvas id="canvas" width="800" height="1000"></canvas>
+</div>
 
 <script>
 
-// 🧠 AI FORMATTER (FREE)
-async function generateAI(){
+let paperType = "ruled";
 
-  const input = document.getElementById("text").value;
+function setPaper(type){
+  paperType = type;
+}
 
-  try{
-
-    const response = await puter.ai.chat(`
-    Convert this into exam answer format with:
-    - headings
-    - short explanation
-    - bullet points
-    - neat structure
-
-    Text:
-    ${input}
-    `);
-
-    document.getElementById("text").value = response;
-
-    generate(); // handwriting render
-
-  }catch(e){
-    alert("AI failed 😓");
-    console.log(e);
+function drawTexture(ctx,h){
+  for(let i=0;i<3000;i++){
+    let x = Math.random()*800;
+    let y = Math.random()*h;
+    let alpha = Math.random()*0.03;
+    ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+    ctx.fillRect(x,y,1,1);
   }
 }
 
+function drawPaper(ctx,h){
 
-// 📄 PAPER DESIGN
-function drawPaper(ctx){
+  if(paperType === "white"){
+    ctx.fillStyle = "#ffffff";
+  }
+  else if(paperType === "soft"){
+    ctx.fillStyle = "#f6f1e7";
+  }
+  else{
+    ctx.fillStyle = "#fbfbf5";
+  }
 
-  ctx.fillStyle = "#fbfbf5";
-  ctx.fillRect(0,0,800,1000);
+  ctx.fillRect(0,0,800,h);
+  drawTexture(ctx,h);
 
-  // ruled lines
-  ctx.strokeStyle="rgba(150,180,255,0.5)";
-  for(let i=100;i<1000;i+=40){
+  if(paperType === "ruled"){
+    ctx.strokeStyle="rgba(150,180,255,0.5)";
+    for(let i=100;i<h;i+=40){
+      ctx.beginPath();
+      ctx.moveTo(0,i);
+      ctx.lineTo(800,i);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle="rgba(255,0,0,0.6)";
     ctx.beginPath();
-    ctx.moveTo(0,i);
-    ctx.lineTo(800,i);
+    ctx.moveTo(70,0);
+    ctx.lineTo(70,h);
     ctx.stroke();
   }
 
-  // margin
-  ctx.strokeStyle="rgba(255,0,0,0.6)";
-  ctx.beginPath();
-  ctx.moveTo(70,0);
-  ctx.lineTo(70,1000);
-  ctx.stroke();
+  let grad = ctx.createLinearGradient(0,0,800,h);
+  grad.addColorStop(0,"rgba(0,0,0,0.05)");
+  grad.addColorStop(1,"rgba(0,0,0,0)");
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,800,h);
 }
 
-
-// ✍️ HANDWRITING
 function generate(){
 
   const text = document.getElementById("text").value;
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
-  ctx.clearRect(0,0,800,1000);
-  drawPaper(ctx);
+  let lines = text.split("\n");
+
+  let height = Math.max(1000, lines.length * 60);
+  canvas.height = height;
+
+  ctx.clearRect(0,0,800,height);
+  drawPaper(ctx,height);
 
   ctx.font="26px 'Dancing Script'";
 
-  let x = 90;
-  let y = 140;
-  let lineHeight = 40;
+  let marginLeft = 90;
+  let lineGap = 40;
+  let maxWidth = 650;
 
-  let lines = text.split("\n");
+  let x = marginLeft;
+  let y = 140;
 
   lines.forEach(line => {
 
-    if(y > 950) return;
+    line = line.trim();
 
-    let isHeading = line === line.toUpperCase();
+    if(line === ""){
+      y += lineGap;
+      return;
+    }
 
-    ctx.fillStyle = isHeading ? "#000" : "#1e3a8a";
+    let isHeading = line.length < 40 && line === line.toUpperCase();
+
+    // 🔥 ONLY COLOR CHANGE
+    if(isHeading){
+      ctx.fillStyle="#000"; // black for heading
+    } else {
+      ctx.fillStyle="rgba(30,58,138,0.95)"; // blue for others
+    }
 
     let words = line.split(" ");
-    let currX = x;
 
     words.forEach(word => {
 
-      let w = ctx.measureText(word).width;
+      let wordWidth = ctx.measureText(word).width;
 
-      if(currX + w > 700){
-        currX = x;
-        y += lineHeight;
+      if(x + wordWidth > marginLeft + maxWidth){
+        x = marginLeft;
+        y += lineGap;
       }
 
-      // slight tilt (handwriting feel)
       let tilt = (Math.random()*2 -1) * 0.05;
 
       ctx.save();
-      ctx.translate(currX,y-5);
+      ctx.translate(x,y - 5);
       ctx.rotate(tilt);
       ctx.fillText(word,0,0);
       ctx.restore();
 
-      currX += w + 8;
+      x += wordWidth + 10;
+
     });
 
-    // underline heading
+    // 🔥 underline heading
     if(isHeading){
       ctx.beginPath();
-      ctx.moveTo(x,y+5);
-      ctx.lineTo(currX,y+5);
+      ctx.moveTo(marginLeft, y+5);
+      ctx.lineTo(marginLeft + ctx.measureText(line).width, y+5);
       ctx.strokeStyle="#000";
+      ctx.lineWidth=1;
       ctx.stroke();
     }
 
-    y += lineHeight;
+    y += lineGap;
+    x = marginLeft;
 
   });
 
+}
+
+function downloadImage(){
+  const canvas = document.getElementById("canvas");
+  const link = document.createElement("a");
+  link.download = "real_notes.png";
+  link.href = canvas.toDataURL();
+  link.click();
+}
+
+function downloadPDF(){
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p","mm","a4");
+
+  const canvas = document.getElementById("canvas");
+
+  const pageWidth = 210;
+  const pageHeight = 297;
+
+  const imgWidth = pageWidth;
+  const scale = imgWidth / canvas.width;
+
+  const pageCanvasHeight = (pageHeight / scale) - 10;
+
+  let y = 0;
+  let pageCount = 0;
+
+  while(y < canvas.height){
+
+    let pageCanvas = document.createElement("canvas");
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = pageCanvasHeight;
+
+    let pageCtx = pageCanvas.getContext("2d");
+
+    pageCtx.drawImage(
+      canvas,
+      0, y,
+      canvas.width, pageCanvasHeight,
+      0, 0,
+      canvas.width, pageCanvasHeight
+    );
+
+    let imgData = pageCanvas.toDataURL("image/png");
+
+    if(pageCount > 0) pdf.addPage();
+
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, pageHeight);
+
+    y += pageCanvasHeight;
+    pageCount++;
+  }
+
+  pdf.save("perfect_notes.pdf");
 }
 
 </script>
