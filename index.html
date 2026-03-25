@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Handwriting Generator ✍️</title>
+  <title>Handwritten Notes ✍️</title>
 
-  <!-- cursive font -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 
   <style>
@@ -20,23 +19,77 @@
     }
 
     canvas {
-      background:#fdfcf7;
       margin-top:20px;
-      box-shadow:0 0 10px rgba(0,0,0,0.3);
+      box-shadow:0 0 15px rgba(0,0,0,0.3);
+      border-radius:10px;
+    }
+
+    button {
+      padding:10px;
+      margin:5px;
     }
   </style>
 </head>
 
 <body>
 
-<h2>Handwriting Generator ✍️</h2>
+<h2>Handwritten Notes ✍️</h2>
 
-<textarea id="text"></textarea><br>
+<button onclick="setPaper('ruled')">Ruled</button>
+<button onclick="setPaper('white')">White</button>
+<button onclick="setPaper('soft')">Soft Paper</button>
+
+<br>
+
+<textarea id="text" placeholder="Type your answer..."></textarea><br>
+
 <button onclick="generate()">Generate</button>
+<button onclick="downloadImage()">Download Image</button>
 
+<br>
 <canvas id="canvas" width="800" height="1000"></canvas>
 
 <script>
+
+let paperType = "ruled";
+
+function setPaper(type){
+  paperType = type;
+}
+
+function drawPaper(ctx){
+
+  // base
+  if(paperType === "white"){
+    ctx.fillStyle = "#ffffff";
+  }
+  else if(paperType === "soft"){
+    ctx.fillStyle = "#fdfaf3";
+  }
+  else{
+    ctx.fillStyle = "#fdfcf7";
+  }
+
+  ctx.fillRect(0,0,800,1000);
+
+  // ruled lines
+  if(paperType === "ruled"){
+    ctx.strokeStyle="#cce0ff";
+    for(let i=100;i<1000;i+=40){
+      ctx.beginPath();
+      ctx.moveTo(0,i);
+      ctx.lineTo(800,i);
+      ctx.stroke();
+    }
+
+    // margin line
+    ctx.strokeStyle="red";
+    ctx.beginPath();
+    ctx.moveTo(70,0);
+    ctx.lineTo(70,1000);
+    ctx.stroke();
+  }
+}
 
 function generate(){
 
@@ -46,44 +99,44 @@ function generate(){
 
   ctx.clearRect(0,0,800,1000);
 
-  // paper background
-  ctx.fillStyle="#fdfcf7";
-  ctx.fillRect(0,0,800,1000);
+  drawPaper(ctx);
 
-  // ruled lines
-  ctx.strokeStyle="#cce0ff";
-  for(let i=80;i<1000;i+=40){
-    ctx.beginPath();
-    ctx.moveTo(0,i);
-    ctx.lineTo(800,i);
-    ctx.stroke();
-  }
-
-  // margin line
-  ctx.strokeStyle="red";
-  ctx.beginPath();
-  ctx.moveTo(60,0);
-  ctx.lineTo(60,1000);
-  ctx.stroke();
-
-  // handwriting style
   ctx.fillStyle="#1e3a8a";
-  ctx.font="28px 'Dancing Script'";
+  ctx.font="26px 'Dancing Script'";
 
-  let x=80;
-  let y=100;
+  let marginLeft = 90;   // margin respect
+  let lineHeight = 40;
+  let maxWidth = 650;
 
-  text.split(" ").forEach(word=>{
+  let x = marginLeft;
+  let y = 120;
+
+  let words = text.split(" ");
+
+  words.forEach(word => {
+
+    let wordWidth = ctx.measureText(word).width;
+
+    if(x + wordWidth > marginLeft + maxWidth){
+      x = marginLeft;
+      y += lineHeight;
+    }
+
     ctx.fillText(word, x, y);
 
-    x += ctx.measureText(word).width + 15;
+    x += wordWidth + 10;
 
-    if(x > 700){
-      x = 80;
-      y += 40;
-    }
   });
 
+}
+
+// download
+function downloadImage(){
+  const canvas = document.getElementById("canvas");
+  const link = document.createElement("a");
+  link.download = "notes.png";
+  link.href = canvas.toDataURL();
+  link.click();
 }
 
 </script>
