@@ -1,33 +1,36 @@
 <!DOCTYPE html>
 <html>
-<body style="text-align:center">
+<head>
+  <title>Handwritten Generator ✍️</title>
+</head>
+<body style="text-align:center; font-family:sans-serif;">
 
-<h2>Handwritten Generator ✍️</h2>
+  <h2>Handwritten Generator ✍️</h2>
 
-<textarea id="text" placeholder="Enter text"></textarea><br><br>
+  <textarea id="text" rows="5" cols="40" placeholder="Enter text..."></textarea><br><br>
 
-<button onclick="gen()">Generate</button>
+  <button onclick="generate()">Generate</button>
 
-<br><br>
+  <br><br>
+  <img id="output" style="max-width:90%;" />
 
-<img id="img" width="90%"/>
+  <script>
+    async function generate() {
+      const text = document.getElementById("text").value;
 
-<script>
-async function gen(){
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
+      });
 
-  let text = document.getElementById("text").value;
+      const data = await res.json();
 
-  let res = await fetch("https://YOUR-VERCEL-LINK/api/generate", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({text})
-  });
-
-  let data = await res.json();
-
-  document.getElementById("img").src = data.image;
-}
-</script>
+      document.getElementById("output").src = data.image;
+    }
+  </script>
 
 </body>
 </html>
