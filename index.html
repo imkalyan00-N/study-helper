@@ -133,14 +133,13 @@ function generate(){
   drawPaper(ctx,height);
 
   ctx.font="26px 'Dancing Script'";
-  ctx.fillStyle="rgba(30,58,138,0.95)"; // 🔥 ALL SAME BLUE
 
   let marginLeft = 90;
   let lineGap = 40;
   let maxWidth = 650;
 
   let x = marginLeft;
-  let y = 140; // first line skip
+  let y = 140;
 
   lines.forEach(line => {
 
@@ -152,6 +151,13 @@ function generate(){
     }
 
     let isHeading = line.length < 40 && line === line.toUpperCase();
+
+    // 🔥 ONLY COLOR CHANGE
+    if(isHeading){
+      ctx.fillStyle="#000"; // black for heading
+    } else {
+      ctx.fillStyle="rgba(30,58,138,0.95)"; // blue for others
+    }
 
     let words = line.split(" ");
 
@@ -176,12 +182,12 @@ function generate(){
 
     });
 
-    // underline (same blue)
+    // 🔥 underline heading
     if(isHeading){
       ctx.beginPath();
       ctx.moveTo(marginLeft, y+5);
       ctx.lineTo(marginLeft + ctx.measureText(line).width, y+5);
-      ctx.strokeStyle="rgba(30,58,138,0.95)";
+      ctx.strokeStyle="#000";
       ctx.lineWidth=1;
       ctx.stroke();
     }
