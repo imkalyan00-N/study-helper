@@ -1,260 +1,74 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Real Handwritten Notes ✍️</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <style>
-    body {
-      text-align:center;
-      background:#e5e5e5;
-      font-family:sans-serif;
-    }
-
-    textarea {
-      width:320px;
-      height:120px;
-      margin:10px;
-    }
-
-    .paper-container{
-      height:600px;
-      overflow-y:auto;
-      display:flex;
-      justify-content:center;
-    }
-
-    canvas {
-      margin-top:20px;
-      box-shadow:0 0 20px rgba(0,0,0,0.4);
-      border-radius:12px;
-    }
-
-    button {
-      padding:10px;
-      margin:5px;
-    }
-  </style>
-</head>
-
-<body>
-
-<h2>Real Handwritten Notes ✍️</h2>
-
-<button onclick="setPaper('ruled')">Ruled</button>
-<button onclick="setPaper('white')">White</button>
-<button onclick="setPaper('soft')">Old Paper</button>
-
-<br>
-
-<textarea id="text" placeholder="Type your answer..."></textarea><br>
-
-<button onclick="generate()">Generate</button>
-<button onclick="downloadImage()">Download Image</button>
-<button onclick="downloadPDF()">Download PDF</button>
-
-<br>
-
-<div class="paper-container">
-  <canvas id="canvas" width="800" height="1000"></canvas>
-</div>
-
 <script>
+const API_KEY = "AIzaSyDkIuXeWYfHuGaB-Gztoso9rOiD-n8X2Ts"; // 👈 IKKADA ADD CHEYYALI
 
-let paperType = "ruled";
+async function generate() {
+  const question = document.getElementById("text").value;
 
-function setPaper(type){
-  paperType = type;
-}
-
-function drawTexture(ctx,h){
-  for(let i=0;i<3000;i++){
-    let x = Math.random()*800;
-    let y = Math.random()*h;
-    let alpha = Math.random()*0.03;
-    ctx.fillStyle = `rgba(0,0,0,${alpha})`;
-    ctx.fillRect(x,y,1,1);
-  }
-}
-
-function drawPaper(ctx,h){
-
-  if(paperType === "white"){
-    ctx.fillStyle = "#ffffff";
-  }
-  else if(paperType === "soft"){
-    ctx.fillStyle = "#f6f1e7";
-  }
-  else{
-    ctx.fillStyle = "#fbfbf5";
-  }
-
-  ctx.fillRect(0,0,800,h);
-  drawTexture(ctx,h);
-
-  if(paperType === "ruled"){
-    ctx.strokeStyle="rgba(150,180,255,0.5)";
-    for(let i=100;i<h;i+=40){
-      ctx.beginPath();
-      ctx.moveTo(0,i);
-      ctx.lineTo(800,i);
-      ctx.stroke();
+  // STEP 1: Get AI answer
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${API_KEY}`,
+    {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: question }] }]
+      })
     }
+  );
 
-    ctx.strokeStyle="rgba(255,0,0,0.6)";
+  const data = await res.json();
+  const answer = data.candidates[0].content.parts[0].text;
+
+  // STEP 2: Draw handwriting
+  draw(answer);
+}
+
+function draw(text) {
+  const canvas = document.getElementById("paper");
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // lines
+  ctx.strokeStyle = "#d0e0ff";
+  for (let y = 40; y < canvas.height; y += 40) {
     ctx.beginPath();
-    ctx.moveTo(70,0);
-    ctx.lineTo(70,h);
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
     ctx.stroke();
   }
 
-  let grad = ctx.createLinearGradient(0,0,800,h);
-  grad.addColorStop(0,"rgba(0,0,0,0.05)");
-  grad.addColorStop(1,"rgba(0,0,0,0)");
+  // margin
+  ctx.strokeStyle = "red";
+  ctx.beginPath();
+  ctx.moveTo(60, 0);
+  ctx.lineTo(60, canvas.height);
+  ctx.stroke();
 
-  ctx.fillStyle = grad;
-  ctx.fillRect(0,0,800,h);
-}
+  // text
+  ctx.fillStyle = "blue";
+  ctx.font = "22px cursive";
 
-function generate(){
+  let words = text.split(" ");
+  let line = "";
+  let x = 70;
+  let y = 50;
+  let maxWidth = 700;
 
-  const text = document.getElementById("text").value;
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
+  for (let i = 0; i < words.length; i++) {
+    let testLine = line + words[i] + " ";
+    let width = ctx.measureText(testLine).width;
 
-  let lines = text.split("\n");
-
-  let height = Math.max(1000, lines.length * 60);
-  canvas.height = height;
-
-  ctx.clearRect(0,0,800,height);
-  drawPaper(ctx,height);
-
-  ctx.font="26px 'Dancing Script'";
-
-  let marginLeft = 90;
-  let lineGap = 40;
-  let maxWidth = 650;
-
-  let x = marginLeft;
-  let y = 140;
-
-  lines.forEach(line => {
-
-    line = line.trim();
-
-    if(line === ""){
-      y += lineGap;
-      return;
-    }
-
-    let isHeading = line.length < 40 && line === line.toUpperCase();
-
-    // 🔥 ONLY COLOR CHANGE
-    if(isHeading){
-      ctx.fillStyle="#000"; // black for heading
+    if (width > maxWidth) {
+      ctx.fillText(line, x, y);
+      line = words[i] + " ";
+      y += 40;
     } else {
-      ctx.fillStyle="rgba(30,58,138,0.95)"; // blue for others
+      line = testLine;
     }
-
-    let words = line.split(" ");
-
-    words.forEach(word => {
-
-      let wordWidth = ctx.measureText(word).width;
-
-      if(x + wordWidth > marginLeft + maxWidth){
-        x = marginLeft;
-        y += lineGap;
-      }
-
-      let tilt = (Math.random()*2 -1) * 0.05;
-
-      ctx.save();
-      ctx.translate(x,y - 5);
-      ctx.rotate(tilt);
-      ctx.fillText(word,0,0);
-      ctx.restore();
-
-      x += wordWidth + 10;
-
-    });
-
-    // 🔥 underline heading
-    if(isHeading){
-      ctx.beginPath();
-      ctx.moveTo(marginLeft, y+5);
-      ctx.lineTo(marginLeft + ctx.measureText(line).width, y+5);
-      ctx.strokeStyle="#000";
-      ctx.lineWidth=1;
-      ctx.stroke();
-    }
-
-    y += lineGap;
-    x = marginLeft;
-
-  });
-
-}
-
-function downloadImage(){
-  const canvas = document.getElementById("canvas");
-  const link = document.createElement("a");
-  link.download = "real_notes.png";
-  link.href = canvas.toDataURL();
-  link.click();
-}
-
-function downloadPDF(){
-
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF("p","mm","a4");
-
-  const canvas = document.getElementById("canvas");
-
-  const pageWidth = 210;
-  const pageHeight = 297;
-
-  const imgWidth = pageWidth;
-  const scale = imgWidth / canvas.width;
-
-  const pageCanvasHeight = (pageHeight / scale) - 10;
-
-  let y = 0;
-  let pageCount = 0;
-
-  while(y < canvas.height){
-
-    let pageCanvas = document.createElement("canvas");
-    pageCanvas.width = canvas.width;
-    pageCanvas.height = pageCanvasHeight;
-
-    let pageCtx = pageCanvas.getContext("2d");
-
-    pageCtx.drawImage(
-      canvas,
-      0, y,
-      canvas.width, pageCanvasHeight,
-      0, 0,
-      canvas.width, pageCanvasHeight
-    );
-
-    let imgData = pageCanvas.toDataURL("image/png");
-
-    if(pageCount > 0) pdf.addPage();
-
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, pageHeight);
-
-    y += pageCanvasHeight;
-    pageCount++;
   }
 
-  pdf.save("perfect_notes.pdf");
+  ctx.fillText(line, x, y);
 }
-
 </script>
-
-</body>
-</html>
