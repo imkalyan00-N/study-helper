@@ -5,6 +5,9 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 
+  <!-- PDF library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
     body {
       text-align:center;
@@ -22,6 +25,8 @@
       margin-top:20px;
       box-shadow:0 0 20px rgba(0,0,0,0.4);
       border-radius:12px;
+      max-height:600px;
+      overflow-y:auto;
     }
 
     button {
@@ -45,9 +50,13 @@
 
 <button onclick="generate()">Generate</button>
 <button onclick="downloadImage()">Download Image</button>
+<button onclick="downloadPDF()">Download PDF</button>
 
 <br>
-<canvas id="canvas" width="800" height="1000"></canvas>
+
+<div style="height:600px; overflow-y:auto;">
+  <canvas id="canvas" width="800" height="2000"></canvas>
+</div>
 
 <script>
 
@@ -57,10 +66,10 @@ function setPaper(type){
   paperType = type;
 }
 
-function drawTexture(ctx){
-  for(let i=0;i<3000;i++){
+function drawTexture(ctx, h){
+  for(let i=0;i<4000;i++){
     let x = Math.random()*800;
-    let y = Math.random()*1000;
+    let y = Math.random()*h;
     let alpha = Math.random()*0.03;
 
     ctx.fillStyle = `rgba(0,0,0,${alpha})`;
@@ -68,49 +77,37 @@ function drawTexture(ctx){
   }
 }
 
-function drawPaper(ctx){
+function drawPaper(ctx, h){
 
-  // base colors
   if(paperType === "white"){
     ctx.fillStyle = "#ffffff";
   }
   else if(paperType === "soft"){
-    ctx.fillStyle = "#f6f1e7"; // old paper
+    ctx.fillStyle = "#f6f1e7";
   }
   else{
     ctx.fillStyle = "#fbfbf5";
   }
 
-  ctx.fillRect(0,0,800,1000);
+  ctx.fillRect(0,0,800,h);
 
-  // texture
-  drawTexture(ctx);
+  drawTexture(ctx, h);
 
-  // ruled lines
   if(paperType === "ruled"){
     ctx.strokeStyle="rgba(150,180,255,0.5)";
-    for(let i=100;i<1000;i+=40){
+    for(let i=100;i<h;i+=40){
       ctx.beginPath();
       ctx.moveTo(0,i);
       ctx.lineTo(800,i);
       ctx.stroke();
     }
 
-    // margin
     ctx.strokeStyle="rgba(255,0,0,0.6)";
     ctx.beginPath();
     ctx.moveTo(70,0);
-    ctx.lineTo(70,1000);
+    ctx.lineTo(70,h);
     ctx.stroke();
   }
-
-  // slight shadow edges (real feel)
-  let grad = ctx.createLinearGradient(0,0,800,1000);
-  grad.addColorStop(0,"rgba(0,0,0,0.05)");
-  grad.addColorStop(1,"rgba(0,0,0,0)");
-
-  ctx.fillStyle = grad;
-  ctx.fillRect(0,0,800,1000);
 }
 
 function generate(){
@@ -119,9 +116,15 @@ function generate(){
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
-  ctx.clearRect(0,0,800,1000);
+  // dynamic height
+  let lines = text.split("\n").length;
+  let height = Math.max(2000, lines * 60);
 
-  drawPaper(ctx);
+  canvas.height = height;
+
+  ctx.clearRect(0,0,800,height);
+
+  drawPaper(ctx, height);
 
   ctx.fillStyle="rgba(30,58,138,0.95)";
   ctx.font="26px 'Dancing Script'";
@@ -144,7 +147,6 @@ function generate(){
       y += lineHeight;
     }
 
-    // slight natural tilt
     let tilt = (Math.random()*2 -1) * 0.05;
 
     ctx.save();
@@ -162,9 +164,24 @@ function generate(){
 function downloadImage(){
   const canvas = document.getElementById("canvas");
   const link = document.createElement("a");
-  link.download = "real_notes.png";
+  link.download = "notes.png";
   link.href = canvas.toDataURL();
   link.click();
+}
+
+// PDF DOWNLOAD
+function downloadPDF(){
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const canvas = document.getElementById("canvas");
+
+  const imgData = canvas.toDataURL("image/png");
+
+  pdf.addImage(imgData, "PNG", 0, 0, 210, 297);
+
+  pdf.save("notes.pdf");
 }
 
 </script>
