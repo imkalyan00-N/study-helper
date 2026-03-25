@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Realistic Handwriting ✍️</title>
+  <title>Handwritten Notes ✍️</title>
 
-  <!-- Best cursive fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Caveat&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 
   <style>
     body {
       text-align: center;
-      font-family: sans-serif;
       background: #f5f5f5;
+      font-family: sans-serif;
     }
 
     textarea {
@@ -22,8 +21,13 @@
     canvas {
       margin-top: 20px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
       background: #fff;
+      box-shadow: 0 0 12px rgba(0,0,0,0.2);
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px;
     }
   </style>
 </head>
@@ -35,9 +39,11 @@
 <textarea id="text" placeholder="Type your answer..."></textarea><br>
 
 <button onclick="generate()">Generate</button>
+<button onclick="downloadImage()">Download Image</button>
+<button onclick="downloadPDF()">Download PDF</button>
 
 <br>
-<canvas id="canvas" width="800" height="500"></canvas>
+<canvas id="canvas" width="800" height="600"></canvas>
 
 <script>
 function generate() {
@@ -52,54 +58,72 @@ function generate() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Lines
-  ctx.strokeStyle = "#dcdcdc";
-  for (let i = 40; i < canvas.height; i += 32) {
+  ctx.strokeStyle = "#e0e0e0";
+  for (let i = 50; i < canvas.height; i += 32) {
     ctx.beginPath();
     ctx.moveTo(0, i);
     ctx.lineTo(canvas.width, i);
     ctx.stroke();
   }
 
-  // Margin line
+  // Margin
   ctx.strokeStyle = "red";
   ctx.beginPath();
   ctx.moveTo(60, 0);
   ctx.lineTo(60, canvas.height);
   ctx.stroke();
 
-  // Font
-  ctx.font = "28px 'Dancing Script'";
-  
+  ctx.font = "30px 'Dancing Script'";
+  ctx.textBaseline = "middle";
+
   let x = 80;
-  let y = 60;
+  let y = 70;
 
   const words = text.split(" ");
 
   words.forEach(word => {
-
-    let tilt = (Math.random() - 0.5) * 0.12;
-    let yShift = (Math.random() - 0.5) * 4;
-    let ink = 120 + Math.random() * 60;
+    let tilt = (Math.random() - 0.5) * 0.15;
+    let vertical = Math.sin(x * 0.05) * 3 + (Math.random() - 0.5) * 2;
+    let ink = 100 + Math.random() * 100;
 
     ctx.save();
-
-    ctx.translate(x, y + yShift);
+    ctx.translate(x, y + vertical);
     ctx.rotate(tilt);
-
-    ctx.fillStyle = `rgb(0, 0, ${ink})`;
+    ctx.fillStyle = `rgb(0,0,${ink})`;
     ctx.fillText(word, 0, 0);
-
     ctx.restore();
 
-    x += ctx.measureText(word).width + (5 + Math.random() * 8);
+    x += ctx.measureText(word).width + (5 + Math.random() * 10);
 
-    if (x > 700) {
+    if (x > 720) {
       x = 80;
-      y += 38 + Math.random() * 5;
+      y += 38 + Math.random() * 6;
     }
   });
 }
+
+// Download Image
+function downloadImage() {
+  const canvas = document.getElementById("canvas");
+  const link = document.createElement("a");
+  link.download = "handwritten.png";
+  link.href = canvas.toDataURL();
+  link.click();
+}
+
+// Download PDF
+function downloadPDF() {
+  const canvas = document.getElementById("canvas");
+  const imgData = canvas.toDataURL("image/png");
+
+  const pdf = new window.jspdf.jsPDF();
+  pdf.addImage(imgData, 'PNG', 10, 10, 180, 120);
+  pdf.save("handwritten.pdf");
+}
 </script>
+
+<!-- PDF library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 </body>
 </html>
