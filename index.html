@@ -3,8 +3,6 @@
 <head>
     <title>Study Helper 💙</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
-
     <style>
         body {
             text-align: center;
@@ -14,7 +12,7 @@
 
         textarea {
             width: 80%;
-            height: 150px;
+            height: 120px;
             margin-top: 20px;
         }
 
@@ -27,8 +25,10 @@
             border-radius: 10px;
         }
 
-        canvas {
+        img {
             margin-top: 20px;
+            width: 90%;
+            display: none;
             border: 2px solid #ccc;
         }
     </style>
@@ -37,72 +37,26 @@
 <body>
 
     <h1>📚 Study Helper 💙</h1>
+    <p>Paste answer and get handwritten notes ✍️</p>
 
-    <textarea id="text" placeholder="Paste your answer here..."></textarea><br>
+    <textarea id="text" placeholder="Paste your answer..."></textarea><br>
 
-    <button onclick="generate()">Generate ✍️</button>
-    <button onclick="download()">Download 📥</button>
+    <button onclick="showNote()">Generate ✍️</button>
 
     <br>
-    <canvas id="canvas" width="800" height="1000"></canvas>
+
+    <img id="noteImage" src="note1.png">
 
     <script>
-        function generate() {
+        function showNote() {
             let text = document.getElementById("text").value;
-            let canvas = document.getElementById("canvas");
-            let ctx = canvas.getContext("2d");
 
-            // Background (white)
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Blue lines
-            ctx.strokeStyle = "#cce";
-            for (let i = 40; i < canvas.height; i += 40) {
-                ctx.beginPath();
-                ctx.moveTo(0, i);
-                ctx.lineTo(canvas.width, i);
-                ctx.stroke();
+            if(text.trim() === "") {
+                alert("Please paste answer first!");
+                return;
             }
 
-            // Red margin line
-            ctx.strokeStyle = "red";
-            ctx.beginPath();
-            ctx.moveTo(60, 0);
-            ctx.lineTo(60, canvas.height);
-            ctx.stroke();
-
-            // Text settings
-            ctx.font = "24px 'Patrick Hand'";
-            ctx.fillStyle = "black";
-
-            let words = text.split(" ");
-            let line = "";
-            let x = 80;
-            let y = 50;
-
-            for (let i = 0; i < words.length; i++) {
-                let testLine = line + words[i] + " ";
-                let width = ctx.measureText(testLine).width;
-
-                if (width > 650) {
-                    ctx.fillText(line, x, y);
-                    line = words[i] + " ";
-                    y += 40;
-                } else {
-                    line = testLine;
-                }
-            }
-
-            ctx.fillText(line, x, y);
-        }
-
-        function download() {
-            let canvas = document.getElementById("canvas");
-            let link = document.createElement("a");
-            link.download = "handwritten.png";
-            link.href = canvas.toDataURL();
-            link.click();
+            document.getElementById("noteImage").style.display = "block";
         }
     </script>
 
