@@ -4,8 +4,6 @@
   <title>Real Handwritten Notes ✍️</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-
-  <!-- PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
@@ -128,7 +126,6 @@ function generate(){
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
-  // auto height
   let words = text.split(" ");
   let linesEstimate = words.length / 6;
   let height = Math.max(1000, linesEstimate * 50);
@@ -136,32 +133,33 @@ function generate(){
   canvas.height = height;
 
   ctx.clearRect(0,0,800,height);
-
   drawPaper(ctx,height);
 
   ctx.fillStyle="rgba(30,58,138,0.95)";
   ctx.font="26px 'Dancing Script'";
 
   let marginLeft = 90;
-  let lineHeight = 42;
+  let lineGap = 40; // same as ruled lines
   let maxWidth = 650;
 
   let x = marginLeft;
-  let y = 120;
+  let y = 100; // EXACTLY first line
 
-  words.forEach(word => {
+  let wordsArr = text.split(" ");
+
+  wordsArr.forEach(word => {
 
     let wordWidth = ctx.measureText(word).width;
 
     if(x + wordWidth > marginLeft + maxWidth){
       x = marginLeft;
-      y += lineHeight;
+      y += lineGap; // align to next ruled line
     }
 
     let tilt = (Math.random()*2 -1) * 0.05;
 
     ctx.save();
-    ctx.translate(x,y);
+    ctx.translate(x,y - 5); // 🔥 baseline adjust (IMPORTANT)
     ctx.rotate(tilt);
     ctx.fillText(word,0,0);
     ctx.restore();
@@ -180,7 +178,7 @@ function downloadImage(){
   link.click();
 }
 
-// 🔥 SMART PDF (NO BLACK LINE CUT)
+// 🔥 CLEAN PDF (SMALL GAP ONLY)
 function downloadPDF(){
 
   const { jsPDF } = window.jspdf;
@@ -194,8 +192,8 @@ function downloadPDF(){
   const imgWidth = pageWidth;
   const scale = imgWidth / canvas.width;
 
-  // safe height (avoid cutting lines)
-  const pageCanvasHeight = (pageHeight / scale) - 40;
+  // 🔥 SMALL GAP ONLY (NO BIG BLACK LINE)
+  const pageCanvasHeight = (pageHeight / scale) - 10;
 
   let y = 0;
   let pageCount = 0;
