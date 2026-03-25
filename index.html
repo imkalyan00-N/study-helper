@@ -5,6 +5,9 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 
+  <!-- PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
     body {
       text-align:center;
@@ -16,6 +19,14 @@
       width:320px;
       height:120px;
       margin:10px;
+    }
+
+    /* ✅ ONLY SCROLL ADDED */
+    .paper-container{
+      height:600px;
+      overflow-y:auto;
+      display:flex;
+      justify-content:center;
     }
 
     canvas {
@@ -45,9 +56,14 @@
 
 <button onclick="generate()">Generate</button>
 <button onclick="downloadImage()">Download Image</button>
+<button onclick="downloadPDF()">Download PDF</button>
 
 <br>
-<canvas id="canvas" width="800" height="1000"></canvas>
+
+<!-- ✅ SCROLL CONTAINER -->
+<div class="paper-container">
+  <canvas id="canvas" width="800" height="1000"></canvas>
+</div>
 
 <script>
 
@@ -57,10 +73,10 @@ function setPaper(type){
   paperType = type;
 }
 
-function drawTexture(ctx){
+function drawTexture(ctx,h){
   for(let i=0;i<3000;i++){
     let x = Math.random()*800;
-    let y = Math.random()*1000;
+    let y = Math.random()*h;
     let alpha = Math.random()*0.03;
 
     ctx.fillStyle = `rgba(0,0,0,${alpha})`;
@@ -68,49 +84,44 @@ function drawTexture(ctx){
   }
 }
 
-function drawPaper(ctx){
+function drawPaper(ctx,h){
 
-  // base colors
   if(paperType === "white"){
     ctx.fillStyle = "#ffffff";
   }
   else if(paperType === "soft"){
-    ctx.fillStyle = "#f6f1e7"; // old paper
+    ctx.fillStyle = "#f6f1e7";
   }
   else{
     ctx.fillStyle = "#fbfbf5";
   }
 
-  ctx.fillRect(0,0,800,1000);
+  ctx.fillRect(0,0,800,h);
 
-  // texture
-  drawTexture(ctx);
+  drawTexture(ctx,h);
 
-  // ruled lines
   if(paperType === "ruled"){
     ctx.strokeStyle="rgba(150,180,255,0.5)";
-    for(let i=100;i<1000;i+=40){
+    for(let i=100;i<h;i+=40){
       ctx.beginPath();
       ctx.moveTo(0,i);
       ctx.lineTo(800,i);
       ctx.stroke();
     }
 
-    // margin
     ctx.strokeStyle="rgba(255,0,0,0.6)";
     ctx.beginPath();
     ctx.moveTo(70,0);
-    ctx.lineTo(70,1000);
+    ctx.lineTo(70,h);
     ctx.stroke();
   }
 
-  // slight shadow edges (real feel)
-  let grad = ctx.createLinearGradient(0,0,800,1000);
+  let grad = ctx.createLinearGradient(0,0,800,h);
   grad.addColorStop(0,"rgba(0,0,0,0.05)");
   grad.addColorStop(1,"rgba(0,0,0,0)");
 
   ctx.fillStyle = grad;
-  ctx.fillRect(0,0,800,1000);
+  ctx.fillRect(0,0,800,h);
 }
 
 function generate(){
@@ -119,9 +130,16 @@ function generate(){
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
-  ctx.clearRect(0,0,800,1000);
+  // ✅ HEIGHT AUTO INCREASE (IMPORTANT FIX)
+  let words = text.split(" ");
+  let linesEstimate = words.length / 6;
+  let height = Math.max(1000, linesEstimate * 50);
 
-  drawPaper(ctx);
+  canvas.height = height;
+
+  ctx.clearRect(0,0,800,height);
+
+  drawPaper(ctx,height);
 
   ctx.fillStyle="rgba(30,58,138,0.95)";
   ctx.font="26px 'Dancing Script'";
@@ -133,8 +151,6 @@ function generate(){
   let x = marginLeft;
   let y = 120;
 
-  let words = text.split(" ");
-
   words.forEach(word => {
 
     let wordWidth = ctx.measureText(word).width;
@@ -144,7 +160,6 @@ function generate(){
       y += lineHeight;
     }
 
-    // slight natural tilt
     let tilt = (Math.random()*2 -1) * 0.05;
 
     ctx.save();
@@ -165,6 +180,37 @@ function downloadImage(){
   link.download = "real_notes.png";
   link.href = canvas.toDataURL();
   link.click();
+}
+
+// ✅ MULTI PAGE PDF FIX
+function downloadPDF(){
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p","mm","a4");
+
+  const canvas = document.getElementById("canvas");
+
+  const imgData = canvas.toDataURL("image/png");
+
+  const imgWidth = 210;
+  const pageHeight = 297;
+
+  const imgHeight = canvas.height * imgWidth / canvas.width;
+
+  let heightLeft = imgHeight;
+  let position = 0;
+
+  pdf.addImage(imgData,"PNG",0,position,imgWidth,imgHeight);
+  heightLeft -= pageHeight;
+
+  while(heightLeft > 0){
+    position = heightLeft - imgHeight;
+    pdf.addPage();
+    pdf.addImage(imgData,"PNG",0,position,imgWidth,imgHeight);
+    heightLeft -= pageHeight;
+  }
+
+  pdf.save("notes.pdf");
 }
 
 </script>
