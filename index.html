@@ -3,8 +3,11 @@
 <head>
   <title>AI Handwritten Notes ✍️</title>
 
+  <!-- Handwriting font -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <!-- FREE AI -->
+  <script src="https://js.puter.com/v2/"></script>
 
   <style>
     body{
@@ -36,95 +39,128 @@
 
 <h2>AI Handwritten Notes ✍️</h2>
 
-<textarea id="text" placeholder="Type answer..."></textarea><br>
+<textarea id="text" placeholder="Type your question or rough answer..."></textarea><br>
 
-<button onclick="generate()">Generate</button>
+<button onclick="generateAI()">Generate</button>
 
 <br>
 <canvas id="canvas" width="800" height="1000"></canvas>
 
 <script>
 
-// 🔥 AI FUNCTION
-async function formatWithAI(input){
+// 🧠 AI FORMATTER (FREE)
+async function generateAI(){
+
+  const input = document.getElementById("text").value;
 
   try{
 
-    const res = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: "openchat/openchat-7b", // ✅ fixed free model
-        messages: [
-          {
-            role: "system",
-            content: "Convert into exam answer with headings and proper structure."
-          },
-          {
-            role: "user",
-            content: input
-          }
-        ]
-      },
-      {
-        headers: {
-          "Authorization": "Bearer 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",
-          "Content-Type": "application/json",
-          "HTTP-Referer": window.location.origin,
-          "X-Title": "Handwriting App"
-        }
-      }
-    );
+    const response = await puter.ai.chat(`
+    Convert this into exam answer format with:
+    - headings
+    - short explanation
+    - bullet points
+    - neat structure
 
-    return res.data.choices[0].message.content;
+    Text:
+    ${input}
+    `);
+
+    document.getElementById("text").value = response;
+
+    generate(); // handwriting render
 
   }catch(e){
-    console.log(e.response?.data || e);
-    alert("API error bro ⚠️ check console");
-    return input;
+    alert("AI failed 😓");
+    console.log(e);
+  }
+}
+
+
+// 📄 PAPER DESIGN
+function drawPaper(ctx){
+
+  ctx.fillStyle = "#fbfbf5";
+  ctx.fillRect(0,0,800,1000);
+
+  // ruled lines
+  ctx.strokeStyle="rgba(150,180,255,0.5)";
+  for(let i=100;i<1000;i+=40){
+    ctx.beginPath();
+    ctx.moveTo(0,i);
+    ctx.lineTo(800,i);
+    ctx.stroke();
   }
 
+  // margin
+  ctx.strokeStyle="rgba(255,0,0,0.6)";
+  ctx.beginPath();
+  ctx.moveTo(70,0);
+  ctx.lineTo(70,1000);
+  ctx.stroke();
 }
 
-// 🔥 GENERATE
-async function generate(){
 
-  const raw = document.getElementById("text").value;
+// ✍️ HANDWRITING
+function generate(){
 
-  const formatted = await formatWithAI(raw);
-
-  draw(formatted);
-}
-
-// ✍️ DRAW HANDWRITING
-function draw(text){
-
+  const text = document.getElementById("text").value;
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
-  ctx.fillStyle="#fbfbf5";
-  ctx.fillRect(0,0,800,1000);
+  ctx.clearRect(0,0,800,1000);
+  drawPaper(ctx);
 
   ctx.font="26px 'Dancing Script'";
 
-  let x=80;
-  let y=120;
+  let x = 90;
+  let y = 140;
+  let lineHeight = 40;
 
   let lines = text.split("\n");
 
-  lines.forEach(line=>{
+  lines.forEach(line => {
 
-    if(line.trim()===""){
-      y+=40;
-      return;
-    }
+    if(y > 950) return;
 
     let isHeading = line === line.toUpperCase();
 
     ctx.fillStyle = isHeading ? "#000" : "#1e3a8a";
 
-    ctx.fillText(line,x,y);
+    let words = line.split(" ");
+    let currX = x;
 
-    y+=40;
+    words.forEach(word => {
+
+      let w = ctx.measureText(word).width;
+
+      if(currX + w > 700){
+        currX = x;
+        y += lineHeight;
+      }
+
+      // slight tilt (handwriting feel)
+      let tilt = (Math.random()*2 -1) * 0.05;
+
+      ctx.save();
+      ctx.translate(currX,y-5);
+      ctx.rotate(tilt);
+      ctx.fillText(word,0,0);
+      ctx.restore();
+
+      currX += w + 8;
+    });
+
+    // underline heading
+    if(isHeading){
+      ctx.beginPath();
+      ctx.moveTo(x,y+5);
+      ctx.lineTo(currX,y+5);
+      ctx.strokeStyle="#000";
+      ctx.stroke();
+    }
+
+    y += lineHeight;
 
   });
 
