@@ -10,33 +10,41 @@
   <textarea id="text" rows="5" cols="30" placeholder="Enter text..."></textarea>
   <br><br>
 
-  <button onclick="generate()">Generate</button>
+  <button id="btn">Generate</button>
 
   <br><br>
   <img id="output" width="300"/>
 
   <script>
-    async function generate() {
+    document.getElementById("btn").addEventListener("click", async function () {
+      alert("Button clicked ✅"); // debug
+
       const text = document.getElementById("text").value;
 
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ text })
-      });
+      try {
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ text })
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      console.log(data); // debug
+        console.log(data);
 
-      if (data.image) {
-        document.getElementById("output").src = data.image;
-      } else {
-        alert("Error: " + JSON.stringify(data));
+        if (data.image) {
+          document.getElementById("output").src = data.image;
+        } else {
+          alert("Error: " + JSON.stringify(data));
+        }
+
+      } catch (err) {
+        alert("Fetch error ❌");
+        console.error(err);
       }
-    }
+    });
   </script>
 
 </body>
