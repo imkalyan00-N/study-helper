@@ -1,34 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Real Handwritten Notes ✍️</title>
+  <title>Smart Notes ✍️</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      text-align: center;
-      background: #ececec;
-      font-family: sans-serif;
-    }
-
-    textarea {
-      width: 320px;
-      height: 130px;
-      margin-top: 15px;
-      display: none;
-    }
-
-    canvas {
-      margin-top: 20px;
-      background: #fdfdf8;
-      box-shadow: 0 0 15px rgba(0,0,0,0.25);
-    }
-
-    button {
-      margin: 8px;
-      padding: 10px;
-    }
+    body { text-align:center; background:#ececec; font-family:sans-serif; }
+    textarea { width:320px; height:130px; margin-top:15px; display:none; }
+    canvas { margin-top:20px; background:#fbfbf5; box-shadow:0 0 15px rgba(0,0,0,0.25); }
+    button { margin:8px; padding:10px; }
   </style>
 </head>
 
@@ -36,69 +17,56 @@
 
 <h2>Handwritten Notes ✍️</h2>
 
-<div>
-  <button onclick="selectPaper('ruled')">Ruled Paper</button>
-  <button onclick="selectPaper('white')">White Paper</button>
-</div>
+<button onclick="selectPaper('ruled')">Ruled</button>
+<button onclick="selectPaper('white')">White</button>
 
-<textarea id="text" placeholder="Type notes..."></textarea><br>
+<textarea id="text"></textarea><br>
 
 <button onclick="generate()">Generate</button>
-<button onclick="downloadImage()">Download</button>
 
-<br>
 <canvas id="canvas" width="800" height="1000"></canvas>
 
 <script>
 
-let paperType = "ruled";
+let paperType="ruled";
 
 function selectPaper(type){
-  paperType = type;
-  document.getElementById("text").style.display = "block";
+  paperType=type;
+  document.getElementById("text").style.display="block";
 }
 
-// detect
+// ✅ BETTER HEADING DETECTION
 function isHeading(line){
-  return line.length < 30 && line === line.toUpperCase();
+  return line === line.toUpperCase() && line.includes(" ") && line.length < 40;
 }
 
+// ✅ STRICT QUESTION DETECTION
 function isQuestion(line){
-  return line.includes("?") || line.toLowerCase().startsWith("what") || line.toLowerCase().startsWith("define");
+  return line.trim().endsWith("?");
 }
 
-// realistic underline
-function drawUnderline(ctx, x, y, width){
-  let base = y + 6;
-
-  ctx.lineWidth = 1;
-
-  ctx.beginPath();
-  for(let i=0;i<=width;i+=5){
-    let wave = Math.sin(i*0.04)*1;
-    ctx.lineTo(x+i, base+wave);
-  }
-  ctx.stroke();
-
-  ctx.globalAlpha = 0.4;
-  ctx.beginPath();
-  for(let i=0;i<=width;i+=6){
-    let wave = Math.sin(i*0.04)*1;
-    ctx.lineTo(x+i, base+wave+1);
-  }
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+// ❌ CODE DETECTION
+function isCode(line){
+  return /[{}();=<>]/.test(line);
 }
 
-// realistic paper
+// underline
+function drawUnderline(ctx,x,y,w){
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let i=0;i<=w;i+=5){
+    let wave=Math.sin(i*0.04)*1;
+    ctx.lineTo(x+i,y+6+wave);
+  }
+  ctx.stroke();
+}
+
+// paper
 function drawPaper(ctx){
-  // off-white paper
   ctx.fillStyle="#fbfbf5";
   ctx.fillRect(0,0,800,1000);
 
-  if(paperType === "ruled"){
-
-    // light blue lines
+  if(paperType==="ruled"){
     ctx.strokeStyle="rgba(100,150,255,0.25)";
     for(let i=60;i<1000;i+=30){
       ctx.beginPath();
@@ -107,7 +75,6 @@ function drawPaper(ctx){
       ctx.stroke();
     }
 
-    // margin (light red)
     ctx.strokeStyle="rgba(255,0,0,0.4)";
     ctx.beginPath();
     ctx.moveTo(70,0);
@@ -116,56 +83,56 @@ function drawPaper(ctx){
   }
 }
 
-// main
+// MAIN
 function generate(){
-  const text = document.getElementById("text").value;
-  if(!text){
-    alert("Enter text bro");
-    return;
-  }
+  const text=document.getElementById("text").value;
+  const lines=text.split("\n");
 
-  const lines = text.split("\n");
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
+  const canvas=document.getElementById("canvas");
+  const ctx=canvas.getContext("2d");
 
   ctx.clearRect(0,0,800,1000);
-
   drawPaper(ctx);
 
-  let x = 90;
-  let y = 90;
+  let x=90;
+  let y=90;
 
-  lines.forEach(line => {
+  lines.forEach(line=>{
+    line=line.trim();
+    if(!line){ y+=18; return; }
 
-    line = line.trim();
-    if(!line){
-      y += 18;
+    // ❌ code line → normal
+    if(isCode(line)){
+      ctx.font="20px monospace";
+      ctx.fillStyle="black";
+      ctx.fillText(line,x,y);
+      y+=26;
       return;
     }
 
-    // heading
+    // ✔ heading (small)
     if(isHeading(line)){
-      ctx.font="bold 24px Dancing Script";
+      ctx.font="bold 22px Dancing Script";
       ctx.fillStyle="#111";
       ctx.fillText(line,x,y);
 
-      let w = ctx.measureText(line).width;
+      let w=ctx.measureText(line).width;
       drawUnderline(ctx,x,y,w);
 
-      y += 32;
+      y+=28;
     }
 
-    // question
+    // ✔ question (small)
     else if(isQuestion(line)){
-      ctx.font="bold 23px Dancing Script";
+      ctx.font="bold 21px Dancing Script";
       ctx.fillStyle="#111";
       ctx.fillText("Q. "+line,x,y);
-      y += 28;
+      y+=26;
     }
 
-    // answer
+    // ✔ answer
     else{
-      ctx.font="22px Dancing Script";
+      ctx.font="20px Dancing Script";
 
       let words=line.split(" ");
       let temp="";
@@ -179,7 +146,7 @@ function generate(){
           ctx.fillText(temp,x,y);
 
           temp=word+" ";
-          y+=26;
+          y+=24;
         }else{
           temp=test;
         }
@@ -187,19 +154,11 @@ function generate(){
 
       ctx.fillStyle=`rgb(0,0,${150+Math.random()*20})`;
       ctx.fillText(temp,x,y);
-      y+=30;
+      y+=28;
     }
 
   });
-}
 
-// download
-function downloadImage(){
-  const canvas = document.getElementById("canvas");
-  const link = document.createElement("a");
-  link.download = "notes.png";
-  link.href = canvas.toDataURL();
-  link.click();
 }
 
 </script>
