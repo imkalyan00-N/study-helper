@@ -74,7 +74,6 @@ function drawTexture(ctx,h){
     let x = Math.random()*800;
     let y = Math.random()*h;
     let alpha = Math.random()*0.03;
-
     ctx.fillStyle = `rgba(0,0,0,${alpha})`;
     ctx.fillRect(x,y,1,1);
   }
@@ -93,7 +92,6 @@ function drawPaper(ctx,h){
   }
 
   ctx.fillRect(0,0,800,h);
-
   drawTexture(ctx,h);
 
   if(paperType === "ruled"){
@@ -135,14 +133,13 @@ function generate(){
   drawPaper(ctx,height);
 
   ctx.font="26px 'Dancing Script'";
-  ctx.fillStyle="rgba(30,58,138,0.95)";
 
   let marginLeft = 90;
   let lineGap = 40;
   let maxWidth = 650;
 
   let x = marginLeft;
-  let y = 100;
+  let y = 140; // first line skip
 
   lines.forEach(line => {
 
@@ -157,38 +154,13 @@ function generate(){
     let isHeading = line.length < 40 && line === line.toUpperCase();
     let isCode = line.includes("{") || line.includes("}") || line.includes(";");
 
-    // HEADING
-    if(isHeading){
+    // same font, only color change
+    if(isHeading || isQuestion){
       ctx.fillStyle="#000";
-
-      ctx.fillText(line, marginLeft, y);
-
-      // underline
-      ctx.beginPath();
-      ctx.moveTo(marginLeft, y+5);
-      ctx.lineTo(marginLeft + ctx.measureText(line).width, y+5);
-      ctx.strokeStyle="#000";
-      ctx.lineWidth=1;
-      ctx.stroke();
-
-      y += lineGap;
+    } else {
       ctx.fillStyle="rgba(30,58,138,0.95)";
-      x = marginLeft;
-      return;
     }
 
-    // QUESTION
-    if(isQuestion){
-      ctx.fillStyle="#000";
-      ctx.fillText(line, marginLeft, y);
-
-      y += lineGap;
-      ctx.fillStyle="rgba(30,58,138,0.95)";
-      x = marginLeft + 10;
-      return;
-    }
-
-    // NORMAL / CODE
     let words = line.split(" ");
 
     words.forEach(word => {
@@ -196,7 +168,7 @@ function generate(){
       let wordWidth = ctx.measureText(word).width;
 
       if(x + wordWidth > marginLeft + maxWidth){
-        x = marginLeft + 10;
+        x = marginLeft;
         y += lineGap;
       }
 
@@ -211,6 +183,16 @@ function generate(){
       x += wordWidth + 10;
 
     });
+
+    // underline for heading
+    if(isHeading){
+      ctx.beginPath();
+      ctx.moveTo(marginLeft, y+5);
+      ctx.lineTo(marginLeft + ctx.measureText(line).width, y+5);
+      ctx.strokeStyle="#000";
+      ctx.lineWidth=1;
+      ctx.stroke();
+    }
 
     y += lineGap;
     x = marginLeft;
