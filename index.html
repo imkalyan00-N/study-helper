@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Study Helper 💙</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            background: #eef;
+        }
+
+        textarea {
+            width: 80%;
+            height: 150px;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+        }
+
+        img {
+            margin-top: 20px;
+            max-width: 90%;
+            border: 2px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📚 Study Helper 💙</h1>
+    <p>Paste your answer and convert into handwritten notes ✍️</p>
+
+    <textarea id="text" placeholder="Paste your answer here..."></textarea><br>
+
+    <button onclick="generate()">Generate Handwritten ✍️</button>
+
+    <br>
+    <img id="output"/>
+
+    <script>
+        function generate() {
+            let text = document.getElementById("text").value;
+
+            let apiKey = "PASTE_YOUR_API_KEY_HERE";
+
+            let url = "https://api.handwriting.io/render/png?text="
+                + encodeURIComponent(text)
+                + "&handwriting_id=2D5S46"
+                + "&api_key=" + apiKey;
+
+            document.getElementById("output").src = url;
+        }
+    </script>
+
+</body>
+</html>
