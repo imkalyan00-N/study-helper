@@ -1,51 +1,107 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Handwritten Generator ✍️</title>
+  <title>Realistic Handwriting ✍️</title>
+
+  <!-- Better handwriting font -->
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      text-align: center;
+      font-family: sans-serif;
+      background: #f5f5f5;
+    }
+
+    textarea {
+      width: 320px;
+      height: 100px;
+      margin-top: 20px;
+    }
+
+    canvas {
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      background: #fff;
+    }
+  </style>
 </head>
-<body style="text-align:center; margin-top:50px;">
 
-  <h2>Handwritten Generator ✍️</h2>
+<body>
 
-  <textarea id="text" rows="5" cols="30" placeholder="Enter text..."></textarea>
-  <br><br>
+<h2>Handwritten Notes Generator ✍️</h2>
 
-  <button id="btn">Generate</button>
+<textarea id="text" placeholder="Type your answer..."></textarea><br>
 
-  <br><br>
-  <img id="output" width="300"/>
+<button onclick="generate()">Generate</button>
 
-  <script>
-    document.getElementById("btn").addEventListener("click", async function () {
-      alert("Button clicked ✅"); // debug
+<br>
+<canvas id="canvas" width="800" height="500"></canvas>
 
-      const text = document.getElementById("text").value;
+<script>
+function generate() {
+  const text = document.getElementById("text").value;
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
 
-      try {
-        const res = await fetch("/api/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ text })
-        });
+  // Clear
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const data = await res.json();
+  // Draw ruled paper
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        console.log(data);
+  ctx.strokeStyle = "#d0d0d0";
+  for (let i = 40; i < canvas.height; i += 35) {
+    ctx.beginPath();
+    ctx.moveTo(0, i);
+    ctx.lineTo(canvas.width, i);
+    ctx.stroke();
+  }
 
-        if (data.image) {
-          document.getElementById("output").src = data.image;
-        } else {
-          alert("Error: " + JSON.stringify(data));
-        }
+  // Red margin line
+  ctx.strokeStyle = "red";
+  ctx.beginPath();
+  ctx.moveTo(60, 0);
+  ctx.lineTo(60, canvas.height);
+  ctx.stroke();
 
-      } catch (err) {
-        alert("Fetch error ❌");
-        console.error(err);
-      }
-    });
-  </script>
+  // Text settings
+  ctx.font = "26px 'Patrick Hand'";
+  
+  let x = 80;
+  let y = 60;
+
+  const words = text.split(" ");
+
+  words.forEach(word => {
+
+    // Random effects (REALISTIC ✍️)
+    let randomTilt = (Math.random() - 0.5) * 0.1;
+    let randomY = (Math.random() - 0.5) * 5;
+    let inkShade = Math.floor(Math.random() * 40);
+
+    ctx.save();
+
+    ctx.translate(x, y + randomY);
+    ctx.rotate(randomTilt);
+
+    ctx.fillStyle = `rgb(0, 0, ${120 + inkShade})`; // blue ink variation
+
+    ctx.fillText(word, 0, 0);
+
+    ctx.restore();
+
+    x += ctx.measureText(word).width + (5 + Math.random() * 10);
+
+    if (x > 700) {
+      x = 80;
+      y += 40 + Math.random() * 5;
+    }
+  });
+}
+</script>
 
 </body>
 </html>
