@@ -1,164 +1,113 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Ultra Real Notes ✍️</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+  <title>Real Handwriting ✍️</title>
 
   <style>
     body {
       text-align: center;
-      background: #eaeaea;
+      background: #ececec;
       font-family: sans-serif;
     }
 
     textarea {
       width: 320px;
-      height: 130px;
-      display: none;
-      margin-top: 10px;
+      height: 120px;
+      margin: 10px;
     }
 
     canvas {
+      background: #fdfcf7;
       margin-top: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
     }
 
     button {
-      margin: 5px;
       padding: 10px;
+      margin: 5px;
     }
   </style>
 </head>
 
 <body>
 
-<h2>Handwritten Notes ✍️</h2>
+<h2>Your Handwriting Generator ✍️</h2>
 
-<button onclick="selectPaper('ruled')">Ruled</button>
-<button onclick="selectPaper('white')">White</button>
+<textarea id="text" placeholder="Type your text..."></textarea><br>
+
 <button onclick="generate()">Generate</button>
-
-<textarea id="text"></textarea>
+<button onclick="downloadImage()">Download Image</button>
 
 <br>
-<canvas id="canvas"></canvas>
-
-<div>
-  <button onclick="downloadImage()">Download Image</button>
-</div>
+<canvas id="canvas" width="800" height="1000"></canvas>
 
 <script>
 
-let paperType="ruled";
+// ✅ IMAGE LINK (ALREADY SET)
+const img = new Image();
+img.src = "https://raw.githubusercontent.com/imkalyan00-N/study-helper/main/handwriting.png";
 
-function selectPaper(type){
-  paperType=type;
-  document.getElementById("text").style.display="block";
-}
-
-// realistic paper texture
-function drawPaper(ctx,h){
-  ctx.fillStyle="#fdfcf7";
-  ctx.fillRect(0,0,800,h);
-
-  // noise texture
-  for(let i=0;i<5000;i++){
-    let x=Math.random()*800;
-    let y=Math.random()*h;
-    ctx.fillStyle=`rgba(0,0,0,${Math.random()*0.03})`;
-    ctx.fillRect(x,y,1,1);
-  }
-
-  if(paperType==="ruled"){
-    ctx.strokeStyle="rgba(100,150,255,0.25)";
-    for(let i=60;i<h;i+=30){
-      ctx.beginPath();
-      ctx.moveTo(0,i);
-      ctx.lineTo(800,i);
-      ctx.stroke();
-    }
-
-    ctx.strokeStyle="rgba(255,0,0,0.3)";
-    ctx.beginPath();
-    ctx.moveTo(70,0);
-    ctx.lineTo(70,h);
-    ctx.stroke();
-  }
-}
-
-// handwriting effect
-function drawText(ctx,text,x,y){
-  let offset=0;
-
-  for(let char of text){
-
-    let rotate=(Math.random()-0.5)*0.08;
-    let upDown=(Math.random()-0.5)*2;
-
-    ctx.save();
-    ctx.translate(x+offset,y+upDown);
-    ctx.rotate(rotate);
-
-    ctx.fillStyle=`rgba(0,0,150,${0.8+Math.random()*0.2})`;
-
-    ctx.fillText(char,0,0);
-
-    ctx.restore();
-
-    offset += ctx.measureText(char).width + Math.random()*1;
-  }
-}
+// basic mapping
+const map = {
+  a:[0,0], b:[30,0], c:[60,0], d:[90,0],
+  e:[120,0], f:[150,0], g:[180,0], h:[210,0],
+  i:[240,0], j:[270,0], k:[300,0], l:[330,0],
+  m:[360,0], n:[390,0], o:[420,0], p:[450,0],
+  q:[480,0], r:[510,0], s:[540,0], t:[570,0],
+  u:[600,0], v:[630,0], w:[660,0], x:[690,0],
+  y:[720,0], z:[750,0]
+};
 
 function generate(){
-  const text=document.getElementById("text").value;
-  const lines=text.split("\n");
 
-  let height=1000 + lines.length*30;
+  const text = document.getElementById("text").value;
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
 
-  const canvas=document.getElementById("canvas");
-  canvas.width=800;
-  canvas.height=height;
+  ctx.clearRect(0,0,800,1000);
 
-  const ctx=canvas.getContext("2d");
+  // paper
+  ctx.fillStyle="#fdfcf7";
+  ctx.fillRect(0,0,800,1000);
 
-  drawPaper(ctx,height);
+  let x = 60;
+  let y = 100;
 
-  ctx.font="20px Dancing Script";
+  text.split("").forEach(ch=>{
 
-  let y=80;
+    if(ch === " "){
+      x += 20;
+      return;
+    }
 
-  lines.forEach(line=>{
-    if(!line){ y+=20; return; }
+    let pos = map[ch.toLowerCase()];
 
-    let words=line.split(" ");
-    let lineText="";
+    if(pos){
+      ctx.drawImage(
+        img,
+        pos[0], pos[1], 30, 40,
+        x, y + (Math.random()*4-2),
+        28, 38
+      );
 
-    words.forEach(word=>{
-      let test=lineText+word+" ";
-      let w=ctx.measureText(test).width;
+      x += 26 + Math.random()*2;
+    }
 
-      if(w>650){
-        drawText(ctx,lineText,90,y);
-        lineText=word+" ";
-        y+=28;
-      }else{
-        lineText=test;
-      }
-    });
+    if(x > 700){
+      x = 60;
+      y += 50;
+    }
 
-    drawText(ctx,lineText,90,y);
-    y+=32;
   });
 
 }
 
 // download
 function downloadImage(){
-  const canvas=document.getElementById("canvas");
-  const link=document.createElement("a");
-  link.download="notes.png";
-  link.href=canvas.toDataURL();
+  const canvas = document.getElementById("canvas");
+  const link = document.createElement("a");
+  link.download = "handwriting.png";
+  link.href = canvas.toDataURL();
   link.click();
 }
 
