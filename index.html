@@ -3,110 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab Record Note Generator</title>
+    <title>Handwritten Pro - V3</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&family=Shadows+Into+Light&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
-            --line-height: 34px; /* Adjust this to match your image lines */
-            --ink-color: #1a3a82; /* Deep Blue Ballpoint Pen Color */
+            --line-gap: 30.2px; /* Precision line spacing */
         }
 
-        body { background-color: #555; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        body { background-color: #333; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         
-        .controls { background: #fff; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; margin-bottom: 20px; text-align: center; }
-        textarea { width: 100%; height: 100px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; padding: 10px; }
-        .btn { padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; color: white; }
-        .btn-gen { background: #27ae60; }
-        .btn-pdf { background: #2980b9; }
+        /* Controls Box */
+        .controls { background: white; padding: 25px; border-radius: 15px; width: 95%; max-width: 600px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; }
+        textarea { width: 100%; height: 120px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; padding: 12px; font-size: 16px; box-sizing: border-box; }
+        
+        .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 5px; color: white; transition: 0.2s; }
+        .btn-gen { background: #00b894; }
+        .btn-pdf { background: #0984e3; }
+        select { padding: 10px; border-radius: 6px; border: 1px solid #ccc; background: #f9f9f9; }
 
-        /* Paper Container */
-        #record-paper {
+        /* Paper Styling */
+        #paper-wrapper { display: none; margin-top: 10px; }
+        
+        #paper {
             width: 210mm; 
             min-height: 297mm; 
-            background: #ffffff;
             position: relative;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            padding: 60px 50px 40px 85px; /* Margin adjust */
+            padding: 42px 40px 40px 75px; /* First line start point */
             box-sizing: border-box;
-            display: none;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
         }
 
-        /* Rule Lines Styling */
-        .lines {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: linear-gradient(transparent 97%, #cfd9e8 3%);
-            background-size: 100% var(--line-height);
-            background-attachment: local;
-            pointer-events: none;
-            z-index: 1;
+        /* --- Paper Variants --- */
+        .paper-ruled { 
+            background: #fff; 
+            background-image: linear-gradient(#e1eef7 1px, transparent 1px);
+            background-size: 100% var(--line-gap);
+        }
+        
+        .paper-white { background: #ffffff !important; background-image: none !important; }
+        
+        .paper-rough { 
+            background: #fdf6e3 !important; /* Slightly yellow/rough feel */
+            background-image: none !important;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.05) !important;
         }
 
-        /* Double Red Margin Lines */
+        /* Red Margin Line */
         .margin-red {
             position: absolute;
-            top: 0; left: 70px;
-            width: 3px; height: 100%;
-            border-left: 1px solid #ff9999;
-            border-right: 1px solid #ff9999;
+            top: 0; left: 65px;
+            width: 2px; height: 100%;
+            border-left: 1px solid #ffb3b3;
             z-index: 2;
         }
 
-        /* Text Content */
+        /* Handwriting Content */
         .content {
-            font-family: 'Caveat', cursive;
-            font-size: 24px;
-            color: var(--ink-color);
-            line-height: var(--line-height);
+            font-family: 'Caveat', cursive; /* You can change to 'Homemade Apple' for variation */
+            font-size: 25px;
+            color: #1c2e7a; /* Ink Blue */
+            line-height: var(--line-gap);
             white-space: pre-wrap;
             position: relative;
             z-index: 3;
-            /* Moves text to the MIDDLE of the lines */
-            padding-top: 4px; 
+            /* Precise shift to touch/float just above the blue line */
+            transform: translateY(6px); 
         }
 
         @media print {
-            body { background: none; padding: 0; }
             .controls { display: none; }
-            #record-paper { display: block; box-shadow: none; }
+            body { background: white; padding: 0; }
+            #paper { box-shadow: none; }
         }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h2>Record Note Generator</h2>
-        <textarea id="inputText" placeholder="Enter Experiment details here..."></textarea>
-        <br>
+        <h2 style="margin-top:0">Record Generator V3</h2>
+        <textarea id="txtInput" placeholder="Matter type chey bro (headings ki manual spaces ivvu)..."></textarea>
+        
+        <div style="margin-bottom: 15px;">
+            <label>Paper Type: </label>
+            <select id="paperSelector" onchange="updatePaperStyle()">
+                <option value="paper-ruled">Ruled Paper</option>
+                <option value="paper-white">Plain White</option>
+                <option value="paper-rough">Rough/Cream</option>
+            </select>
+            
+            <label> Font: </label>
+            <select id="fontSelector" onchange="updateFontStyle()">
+                <option value="'Caveat', cursive">Caveat (Clean)</option>
+                <option value="'Homemade Apple', cursive">Homemade Apple (Realistic)</option>
+                <option value="'Shadows Into Light', cursive">Thin Pen</option>
+            </select>
+        </div>
+
         <button class="btn btn-gen" onclick="generate()">Generate Note</button>
-        <button class="btn btn-pdf" onclick="savePDF()">Download PDF</button>
+        <button class="btn btn-pdf" onclick="download()">Download PDF</button>
     </div>
 
-    <div id="record-paper">
-        <div class="lines"></div>
-        <div class="margin-red"></div>
-        <div id="outputContent" class="content"></div>
+    <div id="paper-wrapper">
+        <div id="paper" class="paper-ruled">
+            <div id="margin" class="margin-red"></div>
+            <div id="output" class="content"></div>
+        </div>
     </div>
 
 <script>
-    function generate() {
-        const text = document.getElementById('inputText').value;
-        if(!text) return alert("Text enter chey bro!");
+    function updatePaperStyle() {
+        const paper = document.getElementById('paper');
+        const margin = document.getElementById('margin');
+        paper.className = document.getElementById('paperSelector').value;
         
-        document.getElementById('outputContent').innerText = text;
-        document.getElementById('record-paper').style.display = 'block';
+        // Hide margin for plain papers
+        if(paper.classList.contains('paper-ruled')) {
+            margin.style.display = 'block';
+        } else {
+            margin.style.display = 'none';
+        }
     }
 
-    function savePDF() {
-        const element = document.getElementById('record-paper');
+    function updateFontStyle() {
+        document.getElementById('output').style.fontFamily = document.getElementById('fontSelector').value;
+    }
+
+    function generate() {
+        const val = document.getElementById('txtInput').value;
+        if(!val) return alert("Text please!");
+        document.getElementById('output').innerText = val;
+        document.getElementById('paper-wrapper').style.display = 'block';
+    }
+
+    function download() {
+        const element = document.getElementById('paper');
         const opt = {
             margin: 0,
-            filename: 'Record_Note.pdf',
+            filename: 'Handwritten_Note_V3.pdf',
             image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 2, useCORS: true },
+            html2canvas: { scale: 3, useCORS: true }, // Higher scale for better quality
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         html2pdf().set(opt).from(element).save();
