@@ -1,141 +1,176 @@
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1.0">  
-<title>Handwriter Pro (Enjoy)</title>  <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">  
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>  <style>  
-:root {  
-    --line-height: 34px;  
-}  
-  
-body {  
-    background: #2c3e50;  
-    display: flex;  
-    flex-direction: column;  
-    align-items: center;  
-    padding: 20px;  
-}  
-  
-.controls {  
-    background: #fff;  
-    padding: 20px;  
-    border-radius: 10px;  
-    width: 95%;  
-    max-width: 600px;  
-    margin-bottom: 20px;  
-    text-align: center;  
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);  
-}  
-  
-textarea {  
-    width: 100%;  
-    height: 120px;  
-    padding: 10px;  
-    border-radius: 5px;  
-}  
-  
-#paper-wrapper {  
-    display: none;  
-    width: 210mm;  
-}  
-  
-/* 🔥 THE FIX: Tight margins for maximum page usage */  
-#paper {  
-    width: 210mm;  
-    background: #fff;  
-    position: relative;  
-    padding: 40px 40px 1px 75px; /* Bottom padding 1px only */  
-    box-sizing: border-box;  
-}  
-  
-.lines {  
-    position: absolute;  
-    top: 0;  
-    left: 0;  
-    right: 0;  
-    bottom: 0;  
-    background-image: linear-gradient(  
-        transparent calc(var(--line-height) - 1px),  
-        #b5c9e8 1px  
-    );  
-    background-size: 100% var(--line-height);  
-    background-position: 0 40px;  
-}  
-  
-.margin {  
-    position: absolute;  
-    left: 65px;  
-    width: 1px;  
-    height: 100%;  
-    background: red;  
-    z-index: 5;  
-}  
-  
-.text {  
-    font-family: 'Caveat', cursive;  
-    font-size: 26px;  
-    color: #1a3c8e;  
-    line-height: var(--line-height);  
-    white-space: pre-wrap;  
-    transform: translateY(7px);  
-    position: relative;  
-    z-index: 10;  
-}  
-  
-/* Ensures each line behaves correctly at page breaks */  
-.handwriting-line {  
-    display: block;  
-    page-break-inside: avoid;  
-    break-inside: avoid;  
-}  
-  
-/* 🔥 NEXT PAGE TOP FIX: Adds the same top gap to new pages */  
-@media print {  
-    .handwriting-line {  
-        padding-top: 0;  
-    }  
-}  
-</style>  </head>  <body>  <div class="controls">  
-    <h2>Handwriter Tight Fit ✅</h2>  
-    <textarea id="input" placeholder="Type or paste your content here..."></textarea><br><br>  
-    <button onclick="generate()">Preview Pages</button>  
-    <button onclick="downloadPDF()">Download PDF</button>  
-</div>  <div id="paper-wrapper">  
-    <div id="paper">  
-        <div class="lines"></div>  
-        <div class="margin"></div>  
-        <div id="output" class="text"></div>  
-    </div>  
-</div>  <script>  
-function generate() {  
-    const text = document.getElementById("input").value;  
-    if(!text) return alert("Matter rayi bro!");  
-  
-    const output = document.getElementById("output");  
-    document.getElementById("paper-wrapper").style.display = "block";  
-      
-    // Wrapping lines to control breaks  
-    const lines = text.split('\n');  
-    output.innerHTML = lines.map(line => `<span class="handwriting-line">${line || '&nbsp;'}</span>`).join('');  
-}  
-  
-function downloadPDF() {  
-    const element = document.getElementById("paper");  
-      
-    // Setting pagebreak to be very strict  
-    const opt = {  
-        margin: 0,  
-        filename: "handwritten_perfect.pdf",  
-        image: { type: 'jpeg', quality: 1.0 },  
-        html2canvas: { scale: 3, useCORS: true },  
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },  
-        pagebreak: {   
-            mode: ['css'],   
-            avoid: '.handwriting-line'   
-        }  
-    };  
-  
-    html2pdf().set(opt).from(element).save();  
-}  
-</script>  </body>  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handwriter Pro (Final Fixed)</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+:root {
+    --line-height: 34px;
+}
+
+body {
+    background: #2c3e50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.controls {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 95%;
+    max-width: 600px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    padding: 10px;
+}
+
+#paper-wrapper {
+    display: none;
+    width: 210mm;
+}
+
+/* PAPER */
+#paper {
+    width: 210mm;
+    height: 297mm;
+    background: #fff;
+    position: relative;
+    padding: 0 40px 0 75px;
+    box-sizing: border-box;
+}
+
+/* LINES */
+.lines {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(
+        transparent calc(var(--line-height) - 1px),
+        #b5c9e8 1px
+    );
+    background-size: 100% var(--line-height);
+}
+
+/* MARGIN */
+.margin {
+    position: absolute;
+    top: 0;
+    left: 65px;
+    width: 1px;
+    height: 100%;
+    background: red;
+}
+
+/* TEXT */
+.text {
+    font-family: 'Caveat', cursive;
+    font-size: 26px;
+    color: #1a3c8e;
+    line-height: var(--line-height);
+    white-space: pre-wrap;
+    padding-top: 40px; /* 🔥 FIXED ALIGNMENT */
+}
+
+/* LINE */
+.handwriting-line {
+    display: block;
+    page-break-inside: avoid;
+}
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+    <h2>Handwriter Perfect ✅</h2>
+    <textarea id="input" placeholder="Type or paste your content here..."></textarea><br><br>
+    <button onclick="generate()">Preview</button>
+    <button onclick="downloadPDF()">Download PDF</button>
+</div>
+
+<div id="paper-wrapper">
+    <div id="paper">
+        <div class="lines"></div>
+        <div class="margin"></div>
+        <div id="output" class="text"></div>
+    </div>
+</div>
+
+<script>
+function generate() {
+    const text = document.getElementById("input").value;
+    if (!text) return alert("Matter rayi bro!");
+
+    const output = document.getElementById("output");
+    document.getElementById("paper-wrapper").style.display = "block";
+
+    const lines = text.split('\n');
+
+    const MAX_LINES = 32;   // total lines per page
+    const SAFE_LINES = 2;   // 🔥 reserve 2 lines
+
+    let currentLine = 0;
+
+    output.innerHTML = "";
+
+    lines.forEach((line) => {
+
+        // 🔥 page break control
+        if (currentLine >= (MAX_LINES - SAFE_LINES)) {
+            const breaker = document.createElement("div");
+            breaker.style.pageBreakBefore = "always";
+            output.appendChild(breaker);
+
+            // 🔥 next page lo 1 empty line vadili start
+            const empty = document.createElement("span");
+            empty.className = "handwriting-line";
+            empty.innerHTML = "&nbsp;";
+            output.appendChild(empty);
+
+            currentLine = 1;
+        }
+
+        const span = document.createElement("span");
+        span.className = "handwriting-line";
+        span.innerHTML = line || "&nbsp;";
+
+        output.appendChild(span);
+        currentLine++;
+    });
+}
+
+function downloadPDF() {
+    const element = document.getElementById("paper");
+
+    const opt = {
+        margin: 0,
+        filename: "handwritten_perfect.pdf",
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: {
+            mode: ['css', 'legacy']
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+</body>
 </html>
