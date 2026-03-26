@@ -3,45 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Note Generator - Final Fix</title>
+    <title>Ultimate Record Generator V5</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&family=Shadows+Into+Light&family=Reenie+Beanie&family=Nanum+Pen+Script&family=Just+Me+Again+Down+Here&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
-            --line-gap: 31px; /* Precise line height */
+            --line-gap: 34.5px;
+            --ink-color: #1a3c8e; /* Default Blue */
         }
 
-        body { background-color: #34495e; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        body { background-color: #2c3e50; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         
-        .controls { background: white; padding: 20px; border-radius: 10px; width: 95%; max-width: 550px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        textarea { width: 100%; height: 100px; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        /* Controls */
+        .controls { background: white; padding: 25px; border-radius: 15px; width: 95%; max-width: 650px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); text-align: center; }
+        textarea { width: 100%; height: 120px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 16px; box-sizing: border-box; }
         
-        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; color: white; }
+        .setting-group { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px; }
+        .setting-item { display: flex; flex-direction: column; align-items: flex-start; }
+        label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 4px; }
+        select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; background: #f9f9f9; cursor: pointer; }
+
+        .btn { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
         .btn-gen { background: #27ae60; }
         .btn-pdf { background: #2980b9; }
 
-        /* Paper Area */
-        #paper-wrapper { display: none; }
-
-        .a4-page {
-            width: 210mm;
-            min-height: 297mm;
+        /* Paper Styling */
+        #paper-wrapper { display: none; margin-top: 10px; }
+        
+        #paper {
+            width: 210mm; 
+            min-height: 297mm; 
             background: #fff;
             position: relative;
-            padding: 0; /* Removing padding to sync lines better */
+            padding: 44px 50px 40px 75px; 
             box-sizing: border-box;
-            box-shadow: 0 0 20px rgba(0,0,0,0.4);
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            overflow: hidden;
         }
 
-        /* Line Background */
-        .lines-layer {
+        .ruled-lines {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             background-image: linear-gradient(#e1eef7 1.5px, transparent 1.5px);
             background-size: 100% var(--line-gap);
-            background-position: 0 40px; /* Starting of first line */
+            background-position: 0 40px;
             pointer-events: none;
             z-index: 1;
         }
@@ -54,98 +61,111 @@
             z-index: 2;
         }
 
-        /* Text Alignment - The Fix */
-        .content-area {
+        #output {
             position: relative;
             z-index: 3;
-            padding: 40px 40px 40px 75px; /* Matches line start */
-            font-family: 'Caveat', cursive;
             font-size: 26px;
-            color: #1a3c8e;
             line-height: var(--line-gap);
             white-space: pre-wrap;
-            /* Precise adjustment to sit ON the line */
-            margin-top: -6px; 
+            color: var(--ink-color);
+            /* Perfect Touch Alignment */
+            transform: translateY(11px); 
+            filter: blur(0.2px); /* Ink effect */
         }
 
-        .white-paper { background-image: none !important; }
-        .rough-paper { background-color: #fdf6e3 !important; background-image: none !important; }
+        /* Paper Variants */
+        .paper-white { background-image: none !important; }
+        .paper-rough { background-color: #fdf6e3 !important; background-image: none !important; }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h3>Exam Note Fixer</h3>
-        <textarea id="userInput" placeholder="Matter rayi bro..."></textarea>
+        <h2 style="margin:0 0 15px 0; color: #2c3e50;">Handwritten Pro V5</h2>
+        <textarea id="userInput" placeholder="Matter ikkada type chey bro..."></textarea>
         
-        <div style="margin-bottom: 10px;">
-            <select id="paperType" onchange="applyStyle()">
-                <option value="ruled">Ruled Paper</option>
-                <option value="white">White Paper</option>
-                <option value="rough">Rough Paper</option>
-            </select>
-            <select id="fontStyle" onchange="applyStyle()">
-                <option value="'Caveat', cursive">Clean Pen</option>
-                <option value="'Homemade Apple', cursive">Realistic Cursive</option>
-            </select>
+        <div class="setting-group">
+            <div class="setting-item">
+                <label>Writing Style</label>
+                <select id="fontStyle" onchange="updateStyle()">
+                    <option value="'Caveat', cursive">Clean Pen</option>
+                    <option value="'Homemade Apple', cursive">Messy Cursive</option>
+                    <option value="'Shadows Into Light', cursive">Sharp Pen</option>
+                    <option value="'Reenie Beanie', cursive">Fast Writing</option>
+                    <option value="'Nanum Pen Script', cursive">Bold Marker</option>
+                    <option value="'Just Me Again Down Here', cursive">Thin Sketch</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <label>Ink Color</label>
+                <select id="inkColor" onchange="updateStyle()">
+                    <option value="#1a3c8e">Blue Ink</option>
+                    <option value="#222222">Black Ink</option>
+                    <option value="#c0392b">Red Ink</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <label>Paper Type</label>
+                <select id="paperType" onchange="updateStyle()">
+                    <option value="ruled">Ruled Paper</option>
+                    <option value="white">Plain White</option>
+                    <option value="rough">Old Record</option>
+                </select>
+            </div>
         </div>
 
-        <button class="btn btn-gen" onclick="generate()">Generate</button>
+        <button class="btn btn-gen" onclick="generate()">Generate Note</button>
         <button class="btn btn-pdf" onclick="savePDF()">Download PDF</button>
     </div>
 
     <div id="paper-wrapper">
-        <div id="paper" class="a4-page">
-            <div id="lines" class="lines-layer"></div>
+        <div id="paper">
+            <div id="lines" class="ruled-lines"></div>
             <div id="margin" class="margin-red"></div>
-            <div id="output" class="content-area"></div>
+            <div id="output"></div>
         </div>
     </div>
 
 <script>
-    function applyStyle() {
+    function updateStyle() {
+        const output = document.getElementById('output');
         const paper = document.getElementById('paper');
         const lines = document.getElementById('lines');
         const margin = document.getElementById('margin');
-        const output = document.getElementById('output');
+
+        // Update Font & Ink
+        output.style.fontFamily = document.getElementById('fontStyle').value;
+        document.documentElement.style.setProperty('--ink-color', document.getElementById('inkColor').value);
+
+        // Update Paper
         const pType = document.getElementById('paperType').value;
-        const font = document.getElementById('fontStyle').value;
-
-        output.style.fontFamily = font;
-
-        if (pType === 'white') {
-            lines.style.display = 'none';
-            margin.style.display = 'none';
-            paper.style.backgroundColor = '#fff';
-            paper.style.backgroundImage = 'none';
-        } else if (pType === 'rough') {
-            lines.style.display = 'none';
-            margin.style.display = 'none';
-            paper.style.backgroundColor = '#fdf6e3';
-            paper.style.backgroundImage = 'none';
-        } else {
-            lines.style.display = 'block';
-            margin.style.display = 'block';
-            paper.style.backgroundColor = '#fff';
-        }
+        lines.style.display = pType === 'ruled' ? 'block' : 'none';
+        margin.style.display = pType === 'ruled' ? 'block' : 'none';
+        
+        if(pType === 'white') paper.style.backgroundColor = '#fff';
+        if(pType === 'rough') paper.style.backgroundColor = '#fdf6e3';
+        if(pType === 'ruled') paper.style.backgroundColor = '#fff';
     }
 
     function generate() {
         const text = document.getElementById('userInput').value;
-        if(!text) return alert("Write something!");
+        if(!text) return alert("Write something bro!");
         document.getElementById('output').innerText = text;
         document.getElementById('paper-wrapper').style.display = 'block';
+        updateStyle();
     }
 
     function savePDF() {
         const element = document.getElementById('paper');
         const opt = {
             margin: 0,
-            filename: 'Record_Fix.pdf',
+            filename: 'Handwritten_Note_V5.pdf',
             image: { type: 'jpeg', quality: 1 },
             html2canvas: { scale: 3, useCORS: true, logging: false },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            pagebreak: { mode: 'avoid-all' }
         };
         html2pdf().set(opt).from(element).save();
     }
