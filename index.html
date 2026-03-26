@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handwritten Pro V5 - Final PDF Fix</title>
+    <title>Handwritten Pro V5 - Premium Sync</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&family=Shadows+Into+Light&family=Reenie+Beanie&family=Nanum+Pen+Script&family=Just+Me+Again+Down+Here&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
@@ -14,28 +16,32 @@
             --ink-color: #1a3c8e;
         }
 
-        body { background-color: #2c3e50; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        body { background-color: #2c3e50; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
         
-        .controls { background: white; padding: 25px; border-radius: 12px; width: 95%; max-width: 650px; margin-bottom: 25px; text-align: center; }
-        textarea { width: 100%; height: 100px; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        .controls { background: white; padding: 25px; border-radius: 12px; width: 95%; max-width: 650px; margin-bottom: 25px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        textarea { width: 100%; height: 120px; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; resize: vertical; }
 
         .setting-group { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px; }
-        select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; cursor: pointer; }
+        select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; cursor: pointer; background: #f9f9f9; }
 
-        .btn { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
+        .btn { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; margin: 5px; }
         .btn-gen { background: #27ae60; }
+        .btn-gen:hover { background: #219150; }
         .btn-pdf { background: #2980b9; }
+        .btn-pdf:hover { background: #1f6391; }
 
-        #paper-wrapper { display: none; width: 210mm; }
+        #paper-wrapper { display: none; margin-top: 10px; }
 
+        /* Accurate A4 Display */
         #paper {
-            width: 100%;
+            width: 210mm;
             min-height: 297mm;
             background-color: #fff;
             position: relative;
-            padding: 41px 50px 40px 75px; 
+            padding: 44px 50px 40px 75px; /* Fine-tuned top padding */
             box-sizing: border-box;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            overflow: hidden;
         }
 
         .ruled-lines {
@@ -63,9 +69,9 @@
             line-height: var(--line-height);
             white-space: pre-wrap;
             color: var(--ink-color);
-            margin-top: 6px; 
-            filter: blur(0.1px);
+            margin-top: 0px; 
             word-wrap: break-word;
+            text-rendering: optimizeLegibility;
         }
 
         .paper-white .ruled-lines, .paper-white .margin-red { display: none; }
@@ -75,8 +81,8 @@
 <body>
 
     <div class="controls">
-        <h2>Handwritten Pro V5 (PDF Sync)</h2>
-        <textarea id="userInput" placeholder="Matter type chey bro..."></textarea>
+        <h2>Handwritten Pro V5 (Premium)</h2>
+        <textarea id="userInput" placeholder="Ikkada nee record matter paste chey bro..."></textarea>
         
         <div class="setting-group">
             <select id="fontStyle" onchange="update()">
@@ -101,8 +107,8 @@
             </select>
         </div>
 
-        <button class="btn btn-gen" onclick="generate()">Generate</button>
-        <button class="btn btn-pdf" onclick="savePDF()">Download PDF</button>
+        <button class="btn btn-gen" onclick="generate()">Generate Note</button>
+        <button class="btn btn-pdf" onclick="savePremiumPDF()">Download Premium PDF</button>
     </div>
 
     <div id="paper-wrapper">
@@ -114,6 +120,8 @@
     </div>
 
 <script>
+    const { jsPDF } = window.jspdf;
+
     function update() {
         const output = document.getElementById('output');
         const paper = document.getElementById('paper');
@@ -121,39 +129,60 @@
         
         output.style.fontFamily = document.getElementById('fontStyle').value;
         document.documentElement.style.setProperty('--ink-color', document.getElementById('inkColor').value);
+
         paper.className = pType === 'white' ? 'paper-white' : (pType === 'rough' ? 'paper-rough' : '');
     }
 
     function generate() {
         const text = document.getElementById('userInput').value;
-        if(!text) return;
+        if(!text.trim()) return;
         document.getElementById('output').innerText = text;
         document.getElementById('paper-wrapper').style.display = 'block';
         update();
+        // Scroll to preview
+        window.scrollTo({ top: document.getElementById('paper-wrapper').offsetTop, behavior: 'smooth' });
     }
 
-    // New optimized function only for PDF logic
-    function savePDF() {
-        const element = document.getElementById('paper');
-        
-        // Temporarily forcing the view to match A4 width to ensure snapshot accuracy
-        const opt = {
-            margin: 0,
-            filename: 'Handwritten_Final.pdf',
-            image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { 
-                scale: 2, // High resolution capture
-                useCORS: true, 
-                letterRendering: true,
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: 794 // Exact A4 pixel width at 96 DPI
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: 'avoid-all' }
-        };
+    async function savePremiumPDF() {
+        const paper = document.getElementById('paper');
+        const btn = document.querySelector('.btn-pdf');
+        btn.innerText = "Processing...";
+        btn.disabled = true;
 
-        html2pdf().set(opt).from(element).save();
+        try {
+            // Step 1: Capture the exact look as a high-res image
+            const canvas = await html2canvas(paper, {
+                scale: 3, // Premium quality
+                useCORS: true,
+                logging: false,
+                backgroundColor: null,
+                windowWidth: paper.scrollWidth,
+                windowHeight: paper.scrollHeight
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            
+            // Step 2: Create PDF with exact image dimensions
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            
+            // Calculate height to maintain ratio
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfImgHeight = (imgProps.height * pageWidth) / imgProps.width;
+
+            // Step 3: Add to PDF
+            // If text is long, it adds as one continuous high-res image across pages
+            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pdfImgHeight);
+            
+            pdf.save('Handwritten_Premium_Record.pdf');
+        } catch (error) {
+            console.error(error);
+            alert("Something went wrong. Try again bro.");
+        } finally {
+            btn.innerText = "Download Premium PDF";
+            btn.disabled = false;
+        }
     }
 </script>
 
