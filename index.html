@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handwritten Pro V10 - Final</title>
+    <title>Handwritten Pro V11 - Continuous Flow</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Shadows+Into+Light&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -23,12 +23,12 @@
         .btn-gen { background: #27ae60; }
         .btn-pdf { background: #2980b9; }
 
-        /* PDF Render Area */
+        /* The Continuous Layout */
         #render-container {
             display: none;
             flex-direction: column;
-            gap: 0;
-            background: #eee;
+            width: 210mm;
+            background: #fff;
         }
 
         .paper-page {
@@ -37,9 +37,15 @@
             background-color: white;
             position: relative;
             box-sizing: border-box;
-            padding: 44.5px 50px 40px 75px; /* Precision top padding */
+            padding: 44.5px 50px 40px 75px; 
             overflow: hidden;
-            page-break-after: always;
+            /* The Black Divider Line between pages */
+            border-bottom: 2px solid #000; 
+        }
+
+        /* Remove border from the last page */
+        .paper-page:last-child {
+            border-bottom: none;
         }
 
         .lines {
@@ -69,9 +75,8 @@
             padding: 0;
         }
 
-        /* Mobile Scale for Preview */
         @media (max-width: 210mm) {
-            #render-container { transform: scale(0.4); transform-origin: top center; display: none; }
+            #render-container { transform: scale(0.45); transform-origin: top center; }
         }
     </style>
 </head>
@@ -83,7 +88,7 @@
             <select id="font" style="padding:8px;"><option value="'Caveat', cursive">Clean</option><option value="'Shadows Into Light', cursive">Sharp</option></select>
             <select id="color" style="padding:8px;"><option value="#1a3c8e">Blue</option><option value="#222">Black</option></select>
         </div>
-        <button class="btn btn-gen" onclick="generate()">Preview Pages</button>
+        <button class="btn btn-gen" onclick="generate()">Generate Continuous View</button>
         <button class="btn btn-pdf" onclick="download()">Download PDF</button>
     </div>
 
@@ -99,7 +104,7 @@
         container.style.display = 'flex';
 
         const lines = text.split('\n');
-        const linesPerPage = 23; // Fixed count for A4
+        const linesPerPage = 23; 
         
         for (let i = 0; i < Math.ceil(lines.length / linesPerPage); i++) {
             const page = document.createElement('div');
@@ -122,13 +127,20 @@
         const element = document.getElementById('render-container');
         if(!element.innerHTML) return alert("Generate first!");
 
+        // PDF download chesthunnappudu aa black divider line raakunda hide chesi download chestha
+        const pages = document.querySelectorAll('.paper-page');
+        pages.forEach(p => p.style.borderBottom = 'none');
+
         html2pdf().set({
             margin: 0,
-            filename: 'Record_Fixed.pdf',
+            filename: 'Record_Note.pdf',
             image: { type: 'jpeg', quality: 1.0 },
             html2canvas: { scale: 2, useCORS: true, letterRendering: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).from(element).save();
+        }).from(element).toPdf().get('pdf').then(function (pdf) {
+            // Restore lines back in preview after download
+            pages.forEach(p => p.style.borderBottom = '2px solid #000');
+        }).save();
     }
 </script>
 
