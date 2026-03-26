@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Realistic Handwriter Pro MAX</title>
+<title>Handwriter PRO MAX FINAL</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -56,7 +56,7 @@ textarea {
     overflow-y: auto;
 }
 
-/* MULTIPLE PAGES */
+/* PAGE */
 .paper {
     width: 210mm;
     height: 297mm;
@@ -65,7 +65,13 @@ textarea {
     margin-bottom: 20px;
     padding: 40px 40px 40px 75px;
     box-sizing: border-box;
+
     page-break-after: always;
+    break-after: page;
+}
+
+.paper:last-child {
+    page-break-after: auto;
 }
 
 /* lines */
@@ -75,7 +81,10 @@ textarea {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: linear-gradient(transparent calc(var(--line-height) - 1px), #b5c9e8 1px);
+    background-image: linear-gradient(
+        transparent calc(var(--line-height) - 1px),
+        #b5c9e8 1px
+    );
     background-size: 100% var(--line-height);
     background-position: 0 40px;
 }
@@ -89,6 +98,7 @@ textarea {
     background: red;
 }
 
+/* text */
 .text {
     font-family: 'Caveat', cursive;
     font-size: 26px;
@@ -134,14 +144,26 @@ function generate() {
         const temp = content.innerText + word + " ";
         content.innerText = temp;
 
-        if(content.scrollHeight > 1000) {
+        // page overflow check
+        if(content.scrollHeight > content.clientHeight) {
             content.innerText = content.innerText.replace(word + " ", "");
+
             page = createPage();
             content = page.querySelector(".text");
             wrapper.appendChild(page);
+
             content.innerText += word + " ";
         }
     });
+
+    // REMOVE EMPTY LAST PAGE
+    const pages = document.querySelectorAll(".paper");
+    const lastPage = pages[pages.length - 1];
+    const txt = lastPage.querySelector(".text").innerText.trim();
+
+    if(txt === "") {
+        lastPage.remove();
+    }
 }
 
 function createPage() {
@@ -160,11 +182,27 @@ function downloadPDF() {
     const element = document.getElementById("paper-wrapper");
 
     const opt = {
-        margin: 0,
+        margin: [0,0,0,0],
         filename: "handwritten.pdf",
+
         image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+
+        html2canvas: {
+            scale: 3,
+            useCORS: true,
+            scrollY: 0
+        },
+
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+
+        pagebreak: {
+            mode: ['css', 'legacy'],
+            avoid: ['.text']
+        }
     };
 
     html2pdf().set(opt).from(element).save();
