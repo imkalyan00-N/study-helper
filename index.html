@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handwritten Pro V5 - Final PDF Fix</title>
+    <title>Handwritten Pro V5 - Absolute Sync</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&family=Shadows+Into+Light&family=Reenie+Beanie&family=Nanum+Pen+Script&family=Just+Me+Again+Down+Here&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
-            /* Fixed scale for both preview and PDF */
             --line-height: 34.5px;
             --ink-color: #1a3c8e;
         }
@@ -29,7 +28,6 @@
 
         #paper-wrapper { display: none; }
 
-        /* The container to be captured for PDF */
         #paper {
             width: 210mm;
             min-height: 297mm;
@@ -39,8 +37,8 @@
             box-sizing: border-box;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             overflow: hidden;
-            /* Ensures no font scaling issues in PDF */
-            -webkit-font-smoothing: antialiased;
+            /* Force exact sizing */
+            aspect-ratio: 210 / 297;
         }
 
         .ruled-lines {
@@ -68,10 +66,10 @@
             line-height: var(--line-height);
             white-space: pre-wrap;
             color: var(--ink-color);
-            /* This shift is now locked for both Preview & PDF */
-            margin-top: 5.5px; 
+            margin-top: 6px; /* Precise align to sit on line */
             filter: blur(0.1px);
-            word-break: break-all;
+            word-wrap: break-word;
+            text-rendering: optimizeLegibility;
         }
 
         .paper-white .ruled-lines, .paper-white .margin-red { display: none; }
@@ -141,19 +139,22 @@
 
     function savePDF() {
         const element = document.getElementById('paper');
+        
+        // Locking scale for absolute synchronization
         const opt = {
             margin: 0,
-            filename: 'Handwritten_Note.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
+            filename: 'Record_Note.pdf',
+            image: { type: 'jpeg', quality: 1.0 },
             html2canvas: { 
-                scale: 3, 
+                scale: 4, // High resolution
                 useCORS: true, 
-                letterRendering: true, // Fixes character drift
-                scrollY: 0,
-                scrollX: 0
+                logging: false,
+                dpi: 192,
+                letterRendering: true
             },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', precision: 32 }
         };
+
         html2pdf().set(opt).from(element).save();
     }
 </script>
