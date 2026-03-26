@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handwriter Final Stable</title>
+<title>Handwriter Final</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -19,6 +19,7 @@ body {
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    overflow-x: hidden;
 }
 
 /* UI */
@@ -38,20 +39,22 @@ textarea {
     padding: 10px;
 }
 
-/* WRAPPER */
+/* SCROLL WRAPPER */
 #paper-wrapper {
     display: none;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
-/* EACH PAGE */
+/* PAGE */
 .page {
     width: 210mm;
-    height: 297mm;
+    min-height: 297mm; /* 🔥 important */
     background: #fff;
     position: relative;
     margin-bottom: 20px;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: visible;
 
     page-break-after: always;
 }
@@ -74,7 +77,7 @@ textarea {
     background-size: 100% var(--line-height);
 }
 
-/* MARGIN LINE */
+/* RED MARGIN */
 .margin {
     position: absolute;
     top: 0;
@@ -105,7 +108,7 @@ textarea {
 
 <div class="controls">
     <h2>Handwriter Perfect ✅</h2>
-    <textarea id="input" placeholder="Type or paste..."></textarea><br><br>
+    <textarea id="input" placeholder="Type or paste your content..."></textarea><br><br>
     <button onclick="generate()">Preview</button>
     <button onclick="downloadPDF()">Download PDF</button>
 </div>
@@ -123,7 +126,7 @@ function generate() {
 
     const lines = text.split("\n");
 
-    const MAX_LINES = 32; // safe fit per page
+    const MAX_LINES = 32; // lines per page
     let count = 0;
     let page = createPage();
 
