@@ -50,7 +50,8 @@ textarea {
     width: 210mm;
     background: #fff;
     position: relative;
-    padding: 40px 40px 90px 75px; 
+    /* Adjusted padding to create the safety gap before the black line */
+    padding: 40px 40px 100px 75px; 
     box-sizing: border-box;
 }
 
@@ -91,12 +92,19 @@ textarea {
     z-index: 10;
 }
 
-/* 🔥 CRITICAL FIX: Stops text cutting at page breaks */
+/* 🔥 THE FIX: Creating a block for each line with break-avoidance */
 .handwriting-line {
     display: block;
     page-break-inside: avoid;
     break-inside: avoid;
     min-height: var(--line-height);
+}
+
+/* Forces a gap before the bottom of the page in PDF */
+@media print {
+    #paper {
+        padding-bottom: 120px; 
+    }
 }
 </style>
 </head>
@@ -128,7 +136,7 @@ function generate() {
     const output = document.getElementById("output");
     document.getElementById("paper-wrapper").style.display = "block";
     
-    // 🔥 FIX: Wrap each line in a div to prevent PDF cutting
+    // 🔥 WRAPPING: Every line is its own container
     const lines = text.split('\n');
     output.innerHTML = lines.map(line => `<span class="handwriting-line">${line || '&nbsp;'}</span>`).join('');
 }
@@ -139,7 +147,7 @@ function downloadPDF() {
     const opt = {
         margin: 0,
         filename: "handwritten.pdf",
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'jpeg', quality: 1.0 },
         html2canvas: {
             scale: 3,
             useCORS: true,
@@ -151,7 +159,8 @@ function downloadPDF() {
             format: 'a4',
             orientation: 'portrait'
         },
-        // 🔥 FIX: Added 'avoid' to the specific line class
+        // 🔥 PAGEBREAK LOGIC: 
+        // Mode 'css' follows our "break-inside: avoid" rule
         pagebreak: { 
             mode: ['css', 'legacy'], 
             avoid: '.handwriting-line' 
