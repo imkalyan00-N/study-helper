@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handwriter PRO MAX FINAL</title>
+<title>Handwriter FINAL FIX</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
 :root {
-    --line-height: 35px;
+    --line-height: 34px;
 }
 
 body {
     background: #2c3e50;
-    font-family: 'Segoe UI', sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
 }
 
+/* UI */
 .controls {
     background: #fff;
     padding: 20px;
@@ -35,47 +35,26 @@ body {
 textarea {
     width: 100%;
     height: 120px;
-    margin-bottom: 10px;
     padding: 10px;
 }
 
-.btn {
-    padding: 10px 15px;
-    border: none;
-    color: #fff;
-    cursor: pointer;
-    margin: 5px;
-}
-
-.btn-gen { background: green; }
-.btn-pdf { background: blue; }
-
+/* paper wrapper */
 #paper-wrapper {
     display: none;
-    max-height: 80vh;
-    overflow-y: auto;
+    width: 210mm;
 }
 
-/* PAGE */
-.paper {
+/* SINGLE LONG PAGE (IMPORTANT) */
+#paper {
     width: 210mm;
-    height: 297mm;
     background: #fff;
     position: relative;
-    margin-bottom: 20px;
     padding: 40px 40px 40px 75px;
     box-sizing: border-box;
-
-    page-break-after: always;
-    break-after: page;
-}
-
-.paper:last-child {
-    page-break-after: auto;
 }
 
 /* lines */
-.ruled {
+.lines {
     position: absolute;
     top: 0;
     left: 0;
@@ -113,99 +92,54 @@ textarea {
 <body>
 
 <div class="controls">
-<h2>Handwriter PRO MAX 🔥</h2>
+<h2>Handwriter FIXED ✅</h2>
 
-<textarea id="input" placeholder="Type your long answer here..."></textarea>
+<textarea id="input"></textarea><br>
 
-<br>
-
-<button class="btn btn-gen" onclick="generate()">Generate</button>
-<button class="btn btn-pdf" onclick="downloadPDF()">Download PDF</button>
+<button onclick="generate()">Generate</button>
+<button onclick="downloadPDF()">Download PDF</button>
 </div>
 
-<div id="paper-wrapper"></div>
+<div id="paper-wrapper">
+    <div id="paper">
+        <div class="lines"></div>
+        <div class="margin"></div>
+        <div id="output" class="text"></div>
+    </div>
+</div>
 
 <script>
 function generate() {
     const text = document.getElementById("input").value;
-    if(!text) return alert("Text rayi bro!");
+    if(!text) return alert("Text rayi bro");
 
-    const wrapper = document.getElementById("paper-wrapper");
-    wrapper.innerHTML = "";
-    wrapper.style.display = "block";
-
-    const words = text.split(" ");
-    let page = createPage();
-    let content = page.querySelector(".text");
-
-    wrapper.appendChild(page);
-
-    words.forEach(word => {
-        const temp = content.innerText + word + " ";
-        content.innerText = temp;
-
-        // page overflow check
-        if(content.scrollHeight > content.clientHeight) {
-            content.innerText = content.innerText.replace(word + " ", "");
-
-            page = createPage();
-            content = page.querySelector(".text");
-            wrapper.appendChild(page);
-
-            content.innerText += word + " ";
-        }
-    });
-
-    // REMOVE EMPTY LAST PAGE
-    const pages = document.querySelectorAll(".paper");
-    const lastPage = pages[pages.length - 1];
-    const txt = lastPage.querySelector(".text").innerText.trim();
-
-    if(txt === "") {
-        lastPage.remove();
-    }
-}
-
-function createPage() {
-    const div = document.createElement("div");
-    div.className = "paper";
-
-    div.innerHTML = `
-        <div class="ruled"></div>
-        <div class="margin"></div>
-        <div class="text"></div>
-    `;
-    return div;
+    document.getElementById("paper-wrapper").style.display = "block";
+    document.getElementById("output").innerText = text;
 }
 
 function downloadPDF() {
-    const element = document.getElementById("paper-wrapper");
+    const element = document.getElementById("paper");
 
-    const opt = {
-        margin: [0,0,0,0],
+    html2pdf().set({
+        margin: 0,
         filename: "handwritten.pdf",
 
-        image: { type: 'jpeg', quality: 1 },
-
         html2canvas: {
-            scale: 3,
-            useCORS: true,
+            scale: 2,
             scrollY: 0
         },
 
         jsPDF: {
             unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
+            format: 'a4'
         },
 
+        /* 🔥 MAGIC FIX */
         pagebreak: {
-            mode: ['css', 'legacy'],
-            avoid: ['.text']
+            mode: ['css', 'legacy', 'avoid-all']
         }
-    };
 
-    html2pdf().set(opt).from(element).save();
+    }).from(element).save();
 }
 </script>
 
