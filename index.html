@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handwritten Pro V5 - Full Answer Fix</title>
+    <title>Handwritten Pro V5 - Final PDF Fix</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&family=Shadows+Into+Light&family=Reenie+Beanie&family=Nanum+Pen+Script&family=Just+Me+Again+Down+Here&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -30,13 +30,12 @@
 
         #paper {
             width: 100%;
-            min-height: 297mm; /* Minimum A4 height */
+            min-height: 297mm;
             background-color: #fff;
             position: relative;
             padding: 41px 50px 40px 75px; 
             box-sizing: border-box;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            /* Removed aspect-ratio to allow full answer growth */
         }
 
         .ruled-lines {
@@ -76,8 +75,8 @@
 <body>
 
     <div class="controls">
-        <h2>Handwritten Pro V5 (Scroll Fix)</h2>
-        <textarea id="userInput" placeholder="Ikkada matter type chey bro..."></textarea>
+        <h2>Handwritten Pro V5 (PDF Sync)</h2>
+        <textarea id="userInput" placeholder="Matter type chey bro..."></textarea>
         
         <div class="setting-group">
             <select id="fontStyle" onchange="update()">
@@ -133,25 +132,30 @@
         update();
     }
 
+    // New optimized function only for PDF logic
     function savePDF() {
         const element = document.getElementById('paper');
+        
+        // Temporarily forcing the view to match A4 width to ensure snapshot accuracy
         const opt = {
             margin: 0,
-            filename: 'Handwritten_Record.pdf',
+            filename: 'Handwritten_Final.pdf',
             image: { type: 'jpeg', quality: 1.0 },
             html2canvas: { 
-                scale: 3, 
+                scale: 2, // High resolution capture
                 useCORS: true, 
-                letterRendering: true 
+                letterRendering: true,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: 794 // Exact A4 pixel width at 96 DPI
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            // This is the magic part that handles multi-page while keeping alignment
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            pagebreak: { mode: 'avoid-all' }
         };
+
         html2pdf().set(opt).from(element).save();
     }
 </script>
 
 </body>
 </html>
-
