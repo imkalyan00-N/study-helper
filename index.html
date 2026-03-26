@@ -3,170 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handwritten Pro V7 - Final Precision</title>
+    <title>Handwritten Pro V8 - Ultimate Sync</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Shadows+Into+Light&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
-            /* Precise line height to match A4 background grid */
-            --line-height: 35.43px; 
+            --line-height: 35.45px; /* Precise height for alignment */
             --ink-color: #1a3c8e;
         }
 
-        body { background-color: #1e272e; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        body { background-color: #2f3640; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
         
-        .controls { background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 650px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; }
-        textarea { width: 100%; height: 120px; padding: 15px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; box-sizing: border-box; }
+        .controls { background: white; padding: 20px; border-radius: 12px; width: 95%; max-width: 650px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+        textarea { width: 100%; height: 120px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; margin-bottom: 15px; box-sizing: border-box; }
 
-        .btn { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; margin: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-gen { background: #05c46b; }
-        .btn-pdf { background: #0fbcf9; }
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; margin: 5px; }
+        .btn-gen { background: #44bd32; }
+        .btn-pdf { background: #0097e6; }
 
-        /* The Hidden Paper for PDF Generation */
-        #pdf-export-container {
-            position: absolute;
-            left: -9999px;
-            top: 0;
-            width: 210mm;
+        /* Preview Area - Shows how it looks on screen */
+        #main-display {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
         }
 
         .paper-page {
             width: 210mm;
-            height: 296.8mm; /* Precise A4 */
+            height: 297mm;
             background-color: white;
             position: relative;
             box-sizing: border-box;
-            padding: 44px 50px 40px 75px; /* Top padding aligned to first line */
+            padding: 44px 50px 40px 75px; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
             overflow: hidden;
+            /* Critical for PDF paging */
             page-break-after: always;
         }
 
-        .lines-layer {
+        .ruled-lines {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(#e1eef7 1.5px, transparent 1.5px);
+            background-image: linear-gradient(#d1e2ff 1.2px, transparent 1.2px);
             background-size: 100% var(--line-height);
-            background-position: 0 42px; /* Fixed starting point */
+            background-position: 0 42px;
             pointer-events: none;
         }
 
-        .margin-line {
+        .red-margin {
             position: absolute;
             top: 0; left: 68px;
-            width: 2px; height: 100%;
-            background-color: #ffb3b3;
+            width: 1.5px; height: 100%;
+            background-color: #ffcccc;
+            border-left: 1px solid #ffb3b3;
         }
 
-        .text-layer {
+        .text-content {
             position: relative;
-            z-index: 10;
-            font-size: 26px;
+            z-index: 2;
+            font-size: 25px;
             line-height: var(--line-height);
             color: var(--ink-color);
             white-space: pre-wrap;
             word-wrap: break-word;
             margin: 0;
             padding: 0;
-            /* Extra crisp rendering */
-            -webkit-font-smoothing: antialiased;
-            text-rendering: optimizeLegibility;
         }
 
-        /* Responsive Preview */
-        #preview-area {
-            width: 95%;
-            max-width: 800px;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            display: none;
-            color: #333;
-            text-align: center;
+        /* Mobile Adjustments */
+        @media (max-width: 800px) {
+            #main-display { transform: scale(0.4); transform-origin: top center; }
         }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h2 style="margin-top:0; color:#2c3e50;">Record Pro V7 (Line Fix)</h2>
-        <textarea id="userInput" placeholder="Paste your record matter here..."></textarea>
+        <h3 style="margin:0 0 15px 0;">Handwritten Pro V8</h3>
+        <textarea id="userInput" placeholder="Ikkada matter paste chey bro..."></textarea>
         
         <div style="margin-bottom: 15px;">
-            <select id="fontStyle" style="padding:8px; border-radius:5px;">
+            <select id="fontSelect">
                 <option value="'Caveat', cursive">Clean Hand</option>
-                <option value="'Shadows Into Light', cursive">Sharp Hand</option>
+                <option value="'Shadows Into Light', cursive">Sharp Pen</option>
                 <option value="'Nanum Pen Script', cursive">Marker Style</option>
             </select>
-            <select id="inkColor" style="padding:8px; border-radius:5px;">
+            <select id="colorSelect">
                 <option value="#1a3c8e">Blue Ink</option>
-                <option value="#222222">Black Ink</option>
+                <option value="#2d3436">Black Ink</option>
             </select>
         </div>
 
-        <button class="btn btn-gen" onclick="preparePreview()">Generate Preview</button>
-        <button class="btn btn-pdf" onclick="downloadPerfectPDF()">Download PDF</button>
+        <button class="btn btn-gen" onclick="generateNotes()">GENERATE PREVIEW</button>
+        <button class="btn btn-pdf" onclick="downloadPDF()">DOWNLOAD PDF</button>
     </div>
 
-    <div id="preview-area">
-        <p>✅ Matter Loaded! Ready to Download.</p>
-    </div>
-
-    <div id="pdf-export-container"></div>
+    <div id="main-display"></div>
 
 <script>
-    function preparePreview() {
+    function generateNotes() {
         const text = document.getElementById('userInput').value;
-        if(!text.trim()) return alert("Please enter some text!");
+        const display = document.getElementById('main-display');
+        const font = document.getElementById('fontSelect').value;
+        const color = document.getElementById('colorSelect').value;
 
-        const container = document.getElementById('pdf-export-container');
-        container.innerHTML = '';
-        
-        const font = document.getElementById('fontStyle').value;
-        const color = document.getElementById('inkColor').value;
-        
-        // Split text into lines to manually handle page breaks
+        if(!text.trim()) { alert("Please enter text first!"); return; }
+
+        display.innerHTML = ''; // Clear existing pages
+
         const lines = text.split('\n');
-        let linesPerPage = 23; // Fixed number of lines that fit on A4 with 35.43px height
+        const linesPerPage = 23; // Perfect fit for A4
         
-        let pageCount = Math.ceil(lines.length / linesPerPage) || 1;
+        const totalPages = Math.ceil(lines.length / linesPerPage);
 
-        for(let i = 0; i < pageCount; i++) {
-            const pageDiv = document.createElement('div');
-            pageDiv.className = 'paper-page';
-            pageDiv.style.fontFamily = font;
-            
+        for (let i = 0; i < totalPages; i++) {
+            const page = document.createElement('div');
+            page.className = 'paper-page';
+            page.style.fontFamily = font;
+
             const start = i * linesPerPage;
             const end = start + linesPerPage;
-            const pageText = lines.slice(start, end).join('\n');
+            const content = lines.slice(start, end).join('\n');
 
-            pageDiv.innerHTML = `
-                <div class="lines-layer"></div>
-                <div class="margin-line"></div>
-                <div class="text-layer" style="color: ${color}">${pageText}</div>
+            page.innerHTML = `
+                <div class="ruled-lines"></div>
+                <div class="red-margin"></div>
+                <div class="text-content" style="color: ${color}">${content}</div>
             `;
-            container.appendChild(pageDiv);
+            display.appendChild(page);
         }
-
-        document.getElementById('preview-area').style.display = 'block';
-        alert("Preview Ready! Check the alignment in PDF download.");
+        
+        window.scrollTo({ top: display.offsetTop, behavior: 'smooth' });
     }
 
-    function downloadPerfectPDF() {
-        const element = document.getElementById('pdf-export-container');
-        if(element.innerHTML === '') return alert("Click Generate first!");
+    function downloadPDF() {
+        const element = document.getElementById('main-display');
+        if(!element.hasChildNodes()) { alert("First Generate Preview!"); return; }
 
         const opt = {
             margin: 0,
-            filename: 'Handwritten_Record_Fixed.pdf',
-            image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true, 
-                letterRendering: true,
-                dpi: 192
-            },
+            filename: 'Record_Note_Perfect.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
