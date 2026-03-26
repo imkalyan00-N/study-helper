@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handwriter Pro (Final Tight Fit)</title>
+<title>Handwriter Pro (Perfect Final Fix)</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -41,18 +41,20 @@ textarea {
 
 #paper-wrapper {
     display: none;
-    width: 210mm;
 }
 
-/* 🔥 THE FIX: Tight margins for maximum page usage */
-#paper {
+/* 🔥 MULTI PAGE SUPPORT */
+.page {
     width: 210mm;
+    height: 297mm;
     background: #fff;
     position: relative;
-    padding: 40px 40px 1px 75px; /* Bottom padding 1px only */
+    padding: 40px 40px 20px 75px;
     box-sizing: border-box;
+    page-break-after: always;
 }
 
+/* Lines */
 .lines {
     position: absolute;
     top: 0;
@@ -67,6 +69,7 @@ textarea {
     background-position: 0 40px;
 }
 
+/* Margin line */
 .margin {
     position: absolute;
     left: 65px;
@@ -76,6 +79,7 @@ textarea {
     z-index: 5;
 }
 
+/* Text */
 .text {
     font-family: 'Caveat', cursive;
     font-size: 26px;
@@ -87,18 +91,14 @@ textarea {
     z-index: 10;
 }
 
-/* Ensures each line behaves correctly at page breaks */
+/* Each line */
 .handwriting-line {
     display: block;
-    page-break-inside: avoid;
-    break-inside: avoid;
 }
 
-/* 🔥 NEXT PAGE TOP FIX: Adds the same top gap to new pages */
-@media print {
-    .handwriting-line {
-        padding-top: 0;
-    }
+/* Prevent cutting */
+.handwriting-line {
+    page-break-inside: avoid;
 }
 </style>
 </head>
@@ -106,47 +106,77 @@ textarea {
 <body>
 
 <div class="controls">
-    <h2>Handwriter Tight Fit ✅</h2>
+    <h2>Handwriter Perfect ✅</h2>
     <textarea id="input" placeholder="Type or paste your content here..."></textarea><br><br>
     <button onclick="generate()">Preview Pages</button>
     <button onclick="downloadPDF()">Download PDF</button>
 </div>
 
-<div id="paper-wrapper">
-    <div id="paper">
-        <div class="lines"></div>
-        <div class="margin"></div>
-        <div id="output" class="text"></div>
-    </div>
-</div>
+<div id="paper-wrapper"></div>
 
 <script>
+const LINE_HEIGHT = 34;
+const PAGE_HEIGHT = 297; // mm
+const TOP_PADDING = 40;
+const BOTTOM_PADDING = 20;
+
+// Approx lines per page
+const LINES_PER_PAGE = Math.floor((PAGE_HEIGHT - TOP_PADDING - BOTTOM_PADDING) / (LINE_HEIGHT * 0.264));
+
 function generate() {
     const text = document.getElementById("input").value;
     if(!text) return alert("Matter rayi bro!");
 
-    const output = document.getElementById("output");
-    document.getElementById("paper-wrapper").style.display = "block";
-    
-    // Wrapping lines to control breaks
+    const wrapper = document.getElementById("paper-wrapper");
+    wrapper.innerHTML = "";
+    wrapper.style.display = "block";
+
     const lines = text.split('\n');
-    output.innerHTML = lines.map(line => `<span class="handwriting-line">${line || '&nbsp;'}</span>`).join('');
+
+    let page;
+    let output;
+    let lineCount = 0;
+
+    function createPage() {
+        page = document.createElement("div");
+        page.className = "page";
+
+        page.innerHTML = `
+            <div class="lines"></div>
+            <div class="margin"></div>
+            <div class="text"></div>
+        `;
+
+        output = page.querySelector(".text");
+        wrapper.appendChild(page);
+        lineCount = 0;
+    }
+
+    createPage();
+
+    lines.forEach(line => {
+        if (lineCount >= LINES_PER_PAGE) {
+            createPage(); // new page
+        }
+
+        const span = document.createElement("span");
+        span.className = "handwriting-line";
+        span.innerHTML = line || "&nbsp;";
+
+        output.appendChild(span);
+        lineCount++;
+    });
 }
 
 function downloadPDF() {
-    const element = document.getElementById("paper");
-    
-    // Setting pagebreak to be very strict
+    const element = document.getElementById("paper-wrapper");
+
     const opt = {
         margin: 0,
         filename: "handwritten_perfect.pdf",
         image: { type: 'jpeg', quality: 1.0 },
         html2canvas: { scale: 3, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { 
-            mode: ['css'], 
-            avoid: '.handwriting-line' 
-        }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(element).save();
