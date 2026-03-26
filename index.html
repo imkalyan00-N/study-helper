@@ -50,8 +50,8 @@ textarea {
     width: 210mm;
     background: #fff;
     position: relative;
-    /* Adjusted padding to create the safety gap before the black line */
-    padding: 40px 40px 100px 75px; 
+    /* 🔥 PADDING REDUCED: Minimal space at bottom to use full page */
+    padding: 40px 40px 45px 75px; 
     box-sizing: border-box;
 }
 
@@ -92,19 +92,12 @@ textarea {
     z-index: 10;
 }
 
-/* 🔥 THE FIX: Creating a block for each line with break-avoidance */
+/* 🔥 LINE WRAPPING: Prevents cutting individual lines */
 .handwriting-line {
     display: block;
     page-break-inside: avoid;
     break-inside: avoid;
     min-height: var(--line-height);
-}
-
-/* Forces a gap before the bottom of the page in PDF */
-@media print {
-    #paper {
-        padding-bottom: 120px; 
-    }
 }
 </style>
 </head>
@@ -136,7 +129,6 @@ function generate() {
     const output = document.getElementById("output");
     document.getElementById("paper-wrapper").style.display = "block";
     
-    // 🔥 WRAPPING: Every line is its own container
     const lines = text.split('\n');
     output.innerHTML = lines.map(line => `<span class="handwriting-line">${line || '&nbsp;'}</span>`).join('');
 }
@@ -159,8 +151,6 @@ function downloadPDF() {
             format: 'a4',
             orientation: 'portrait'
         },
-        // 🔥 PAGEBREAK LOGIC: 
-        // Mode 'css' follows our "break-inside: avoid" rule
         pagebreak: { 
             mode: ['css', 'legacy'], 
             avoid: '.handwriting-line' 
