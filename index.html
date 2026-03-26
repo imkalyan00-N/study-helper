@@ -50,8 +50,8 @@ textarea {
     width: 210mm;
     background: #fff;
     position: relative;
-    /* 🔥 PADDING REDUCED: Minimal space at bottom to use full page */
-    padding: 40px 40px 45px 75px; 
+    /* 🔥 PADDING MINIMIZED: Uses almost the entire page */
+    padding: 40px 40px 10px 75px; 
     box-sizing: border-box;
 }
 
@@ -92,7 +92,7 @@ textarea {
     z-index: 10;
 }
 
-/* 🔥 LINE WRAPPING: Prevents cutting individual lines */
+/* 🔥 LINE WRAPPING: Keeps lines intact but allows them to fill the page */
 .handwriting-line {
     display: block;
     page-break-inside: avoid;
@@ -152,7 +152,7 @@ function downloadPDF() {
             orientation: 'portrait'
         },
         pagebreak: { 
-            mode: ['css', 'legacy'], 
+            mode: ['css'], // 🔥 Use only CSS mode for tighter control
             avoid: '.handwriting-line' 
         }
     };
