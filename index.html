@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handwriter Pro (Final Fixed)</title>
+<title>Handwriter Pro Fixed</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -37,22 +37,23 @@ textarea {
     padding: 10px;
 }
 
+/* wrapper */
 #paper-wrapper {
     display: none;
     width: 210mm;
 }
 
-/* PAPER */
-#paper {
+/* EACH PAGE */
+.page {
     width: 210mm;
     height: 297mm;
     background: #fff;
     position: relative;
-    padding: 0 40px 0 75px;
+    margin-bottom: 20px;
     box-sizing: border-box;
 }
 
-/* LINES */
+/* lines */
 .lines {
     position: absolute;
     top: 40px;
@@ -66,7 +67,7 @@ textarea {
     background-size: 100% var(--line-height);
 }
 
-/* MARGIN */
+/* margin */
 .margin {
     position: absolute;
     top: 0;
@@ -76,20 +77,19 @@ textarea {
     background: red;
 }
 
-/* TEXT */
+/* text */
 .text {
     font-family: 'Caveat', cursive;
     font-size: 26px;
     color: #1a3c8e;
     line-height: var(--line-height);
+    padding: 40px 40px 0 75px;
     white-space: pre-wrap;
-    padding-top: 40px; /* 🔥 FIXED ALIGNMENT */
 }
 
-/* LINE */
+/* line */
 .handwriting-line {
     display: block;
-    page-break-inside: avoid;
 }
 </style>
 </head>
@@ -97,75 +97,69 @@ textarea {
 <body>
 
 <div class="controls">
-    <h2>Handwriter Perfect ✅</h2>
-    <textarea id="input" placeholder="Type or paste your content here..."></textarea><br><br>
+    <h2>Handwriter Fixed ✅</h2>
+    <textarea id="input" placeholder="Type or paste..."></textarea><br><br>
     <button onclick="generate()">Preview</button>
     <button onclick="downloadPDF()">Download PDF</button>
 </div>
 
-<div id="paper-wrapper">
-    <div id="paper">
-        <div class="lines"></div>
-        <div class="margin"></div>
-        <div id="output" class="text"></div>
-    </div>
-</div>
+<div id="paper-wrapper"></div>
 
 <script>
 function generate() {
     const text = document.getElementById("input").value;
     if (!text) return alert("Matter rayi bro!");
 
-    const output = document.getElementById("output");
-    document.getElementById("paper-wrapper").style.display = "block";
+    const wrapper = document.getElementById("paper-wrapper");
+    wrapper.innerHTML = "";
+    wrapper.style.display = "block";
 
-    const lines = text.split('\n');
+    const lines = text.split("\n");
 
-    const MAX_LINES = 32;   // total lines per page
-    const SAFE_LINES = 2;   // 🔥 reserve 2 lines
+    const MAX_LINES = 32; // safe count
 
-    let currentLine = 0;
+    let page = createPage();
+    let count = 0;
 
-    output.innerHTML = "";
+    lines.forEach(line => {
 
-    lines.forEach((line) => {
-
-        // 🔥 page break control
-        if (currentLine >= (MAX_LINES - SAFE_LINES)) {
-            const breaker = document.createElement("div");
-            breaker.style.pageBreakBefore = "always";
-            output.appendChild(breaker);
-
-            // 🔥 next page lo 1 empty line vadili start
-            const empty = document.createElement("span");
-            empty.className = "handwriting-line";
-            empty.innerHTML = "&nbsp;";
-            output.appendChild(empty);
-
-            currentLine = 1;
+        if (count >= MAX_LINES) {
+            page = createPage();
+            count = 0;
         }
 
         const span = document.createElement("span");
         span.className = "handwriting-line";
         span.innerHTML = line || "&nbsp;";
 
-        output.appendChild(span);
-        currentLine++;
+        page.querySelector(".text").appendChild(span);
+        count++;
     });
+
+    function createPage() {
+        const page = document.createElement("div");
+        page.className = "page";
+
+        page.innerHTML = `
+            <div class="lines"></div>
+            <div class="margin"></div>
+            <div class="text"></div>
+        `;
+
+        wrapper.appendChild(page);
+        return page;
+    }
 }
 
 function downloadPDF() {
-    const element = document.getElementById("paper");
+    const element = document.getElementById("paper-wrapper");
 
     const opt = {
         margin: 0,
-        filename: "handwritten_perfect.pdf",
+        filename: "handwritten.pdf",
         image: { type: 'jpeg', quality: 1 },
         html2canvas: { scale: 3 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: {
-            mode: ['css', 'legacy']
-        }
+        jsPDF: { unit: 'mm', format: 'a4' }
     };
 
     html2pdf().set(opt).from(element).save();
