@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handwriter Pro (Final Tight Fit)</title>
+<title>Handwriter FINAL PERFECT V14</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -19,6 +19,7 @@ body {
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    margin: 0;
 }
 
 .controls {
@@ -29,36 +30,33 @@ body {
     max-width: 600px;
     margin-bottom: 20px;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 textarea {
     width: 100%;
     height: 120px;
     padding: 10px;
-    border-radius: 5px;
 }
 
-#paper-wrapper {
+/* 🔥 NEW WRAPPER LOGIC */
+#paper-container {
     display: none;
     width: 210mm;
 }
 
-/* 🔥 THE FIX: Tight margins for maximum page usage */
-#paper {
+.paper-page {
     width: 210mm;
+    height: 297mm;
     background: #fff;
     position: relative;
-    padding: 40px 40px 1px 75px; /* Bottom padding 1px only */
+    padding: 40px 40px 10px 75px; 
     box-sizing: border-box;
+    page-break-after: always; /* Forces new page in PDF */
 }
 
 .lines {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background-image: linear-gradient(
         transparent calc(var(--line-height) - 1px),
         #b5c9e8 1px
@@ -86,70 +84,58 @@ textarea {
     position: relative;
     z-index: 10;
 }
-
-/* Ensures each line behaves correctly at page breaks */
-.handwriting-line {
-    display: block;
-    page-break-inside: avoid;
-    break-inside: avoid;
-}
-
-/* 🔥 NEXT PAGE TOP FIX: Adds the same top gap to new pages */
-@media print {
-    .handwriting-line {
-        padding-top: 0;
-    }
-}
 </style>
 </head>
 
 <body>
 
 <div class="controls">
-    <h2>Handwriter Tight Fit ✅</h2>
-    <textarea id="input" placeholder="Type or paste your content here..."></textarea><br><br>
-    <button onclick="generate()">Preview Pages</button>
-    <button onclick="downloadPDF()">Download PDF</button>
+<h2>Handwriter PERFECT V14 ✅</h2>
+<textarea id="input" placeholder="Type your answer..."></textarea><br><br>
+<button onclick="generate()">Generate</button>
+<button onclick="downloadPDF()">Download PDF</button>
 </div>
 
-<div id="paper-wrapper">
-    <div id="paper">
-        <div class="lines"></div>
-        <div class="margin"></div>
-        <div id="output" class="text"></div>
-    </div>
-</div>
+<div id="paper-container"></div>
 
 <script>
 function generate() {
     const text = document.getElementById("input").value;
-    if(!text) return alert("Matter rayi bro!");
+    if(!text) return alert("Text rayi bro!");
 
-    const output = document.getElementById("output");
-    document.getElementById("paper-wrapper").style.display = "block";
-    
-    // Wrapping lines to control breaks
+    const container = document.getElementById("paper-container");
+    container.style.display = "block";
+    container.innerHTML = ""; // Clear old pages
+
     const lines = text.split('\n');
-    output.innerHTML = lines.map(line => `<span class="handwriting-line">${line || '&nbsp;'}</span>`).join('');
+    const linesPerPage = 24; // 🔥 Exactly 24 lines to fill the page
+    
+    for (let i = 0; i < Math.ceil(lines.length / linesPerPage); i++) {
+        const page = document.createElement("div");
+        page.className = "paper-page";
+        
+        const pageLines = lines.slice(i * linesPerPage, (i + 1) * linesPerPage).join('\n');
+        
+        page.innerHTML = `
+            <div class="lines"></div>
+            <div class="margin"></div>
+            <div class="text">${pageLines}</div>
+        `;
+        container.appendChild(page);
+    }
 }
 
 function downloadPDF() {
-    const element = document.getElementById("paper");
-    
-    // Setting pagebreak to be very strict
-    const opt = {
+    const element = document.getElementById("paper-container");
+    if(!element.innerHTML) return alert("Generate kottu bro!");
+
+    html2pdf().set({
         margin: 0,
-        filename: "handwritten_perfect.pdf",
+        filename: "handwritten_fixed.pdf",
         image: { type: 'jpeg', quality: 1.0 },
         html2canvas: { scale: 3, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { 
-            mode: ['css'], 
-            avoid: '.handwriting-line' 
-        }
-    };
-
-    html2pdf().set(opt).from(element).save();
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(element).save();
 }
 </script>
 
