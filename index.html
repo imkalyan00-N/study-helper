@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handwritten Pro V5 - Absolute Sync</title>
+    <title>Handwritten Pro V5 - Full Answer Fix</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&family=Shadows+Into+Light&family=Reenie+Beanie&family=Nanum+Pen+Script&family=Just+Me+Again+Down+Here&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -26,19 +26,17 @@
         .btn-gen { background: #27ae60; }
         .btn-pdf { background: #2980b9; }
 
-        #paper-wrapper { display: none; }
+        #paper-wrapper { display: none; width: 210mm; }
 
         #paper {
-            width: 210mm;
-            min-height: 297mm;
+            width: 100%;
+            min-height: 297mm; /* Minimum A4 height */
             background-color: #fff;
             position: relative;
             padding: 41px 50px 40px 75px; 
             box-sizing: border-box;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            overflow: hidden;
-            /* Force exact sizing */
-            aspect-ratio: 210 / 297;
+            /* Removed aspect-ratio to allow full answer growth */
         }
 
         .ruled-lines {
@@ -66,10 +64,9 @@
             line-height: var(--line-height);
             white-space: pre-wrap;
             color: var(--ink-color);
-            margin-top: 6px; /* Precise align to sit on line */
+            margin-top: 6px; 
             filter: blur(0.1px);
             word-wrap: break-word;
-            text-rendering: optimizeLegibility;
         }
 
         .paper-white .ruled-lines, .paper-white .margin-red { display: none; }
@@ -79,7 +76,7 @@
 <body>
 
     <div class="controls">
-        <h2>Handwritten Pro V5 (Final Sync)</h2>
+        <h2>Handwritten Pro V5 (Scroll Fix)</h2>
         <textarea id="userInput" placeholder="Ikkada matter type chey bro..."></textarea>
         
         <div class="setting-group">
@@ -125,7 +122,6 @@
         
         output.style.fontFamily = document.getElementById('fontStyle').value;
         document.documentElement.style.setProperty('--ink-color', document.getElementById('inkColor').value);
-
         paper.className = pType === 'white' ? 'paper-white' : (pType === 'rough' ? 'paper-rough' : '');
     }
 
@@ -139,25 +135,23 @@
 
     function savePDF() {
         const element = document.getElementById('paper');
-        
-        // Locking scale for absolute synchronization
         const opt = {
             margin: 0,
-            filename: 'Record_Note.pdf',
+            filename: 'Handwritten_Record.pdf',
             image: { type: 'jpeg', quality: 1.0 },
             html2canvas: { 
-                scale: 4, // High resolution
+                scale: 3, 
                 useCORS: true, 
-                logging: false,
-                dpi: 192,
-                letterRendering: true
+                letterRendering: true 
             },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', precision: 32 }
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            // This is the magic part that handles multi-page while keeping alignment
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
-
         html2pdf().set(opt).from(element).save();
     }
 </script>
 
 </body>
 </html>
+
