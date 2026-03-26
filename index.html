@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handwritten Pro V5 - Final Fix</title>
+    <title>Handwritten Pro V5 - Final PDF Fix</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&family=Shadows+Into+Light&family=Reenie+Beanie&family=Nanum+Pen+Script&family=Just+Me+Again+Down+Here&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
-            /* Precise line spacing to prevent drifting */
+            /* Fixed scale for both preview and PDF */
             --line-height: 34.5px;
             --ink-color: #1a3c8e;
         }
@@ -29,22 +29,23 @@
 
         #paper-wrapper { display: none; }
 
+        /* The container to be captured for PDF */
         #paper {
             width: 210mm;
             min-height: 297mm;
             background-color: #fff;
             position: relative;
-            /* Padding top must be a multiple of line-height for sync */
             padding: 41px 50px 40px 75px; 
             box-sizing: border-box;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             overflow: hidden;
+            /* Ensures no font scaling issues in PDF */
+            -webkit-font-smoothing: antialiased;
         }
 
         .ruled-lines {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            /* Using background-size to match line-height exactly */
             background-image: linear-gradient(#e1eef7 1.5px, transparent 1.5px);
             background-size: 100% var(--line-height);
             background-position: 0 38px;
@@ -67,9 +68,10 @@
             line-height: var(--line-height);
             white-space: pre-wrap;
             color: var(--ink-color);
-            /* This shift moves the text onto the line without cutting it */
-            margin-top: 5px; 
-            filter: blur(0.15px);
+            /* This shift is now locked for both Preview & PDF */
+            margin-top: 5.5px; 
+            filter: blur(0.1px);
+            word-break: break-all;
         }
 
         .paper-white .ruled-lines, .paper-white .margin-red { display: none; }
@@ -79,8 +81,8 @@
 <body>
 
     <div class="controls">
-        <h2>Handwritten Pro V5 (Fixed)</h2>
-        <textarea id="userInput" placeholder="Type here..."></textarea>
+        <h2>Handwritten Pro V5 (Final Sync)</h2>
+        <textarea id="userInput" placeholder="Ikkada matter type chey bro..."></textarea>
         
         <div class="setting-group">
             <select id="fontStyle" onchange="update()">
@@ -139,13 +141,20 @@
 
     function savePDF() {
         const element = document.getElementById('paper');
-        html2pdf().set({
+        const opt = {
             margin: 0,
-            filename: 'Final_Record.pdf',
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 3, useCORS: true },
+            filename: 'Handwritten_Note.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { 
+                scale: 3, 
+                useCORS: true, 
+                letterRendering: true, // Fixes character drift
+                scrollY: 0,
+                scrollX: 0
+            },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).from(element).save();
+        };
+        html2pdf().set(opt).from(element).save();
     }
 </script>
 
