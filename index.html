@@ -50,7 +50,7 @@ textarea {
     width: 210mm;
     background: #fff;
     position: relative;
-    padding: 40px 40px 90px 75px; /* 🔥 EXTRA BOTTOM SPACE */
+    padding: 40px 40px 90px 75px; 
     box-sizing: border-box;
 }
 
@@ -76,6 +76,7 @@ textarea {
     width: 1px;
     height: 100%;
     background: red;
+    z-index: 5;
 }
 
 /* text */
@@ -86,8 +87,16 @@ textarea {
     line-height: var(--line-height);
     white-space: pre-wrap;
     transform: translateY(7px);
+    position: relative;
+    z-index: 10;
+}
 
-    padding-bottom: 80px; /* 🔥 MAIN FIX */
+/* 🔥 CRITICAL FIX: Stops text cutting at page breaks */
+.handwriting-line {
+    display: block;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    min-height: var(--line-height);
 }
 </style>
 </head>
@@ -116,38 +125,40 @@ function generate() {
     const text = document.getElementById("input").value;
     if(!text) return alert("Text rayi bro!");
 
+    const output = document.getElementById("output");
     document.getElementById("paper-wrapper").style.display = "block";
-    document.getElementById("output").innerText = text;
+    
+    // 🔥 FIX: Wrap each line in a div to prevent PDF cutting
+    const lines = text.split('\n');
+    output.innerHTML = lines.map(line => `<span class="handwriting-line">${line || '&nbsp;'}</span>`).join('');
 }
 
 function downloadPDF() {
     const element = document.getElementById("paper");
 
-    document.body.style.height = "auto";
-
-    html2pdf().set({
+    const opt = {
         margin: 0,
         filename: "handwritten.pdf",
-
+        image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
             scale: 3,
             useCORS: true,
-            scrollY: 0,
-            windowHeight: document.body.scrollHeight
+            logging: false,
+            letterRendering: true
         },
-
         jsPDF: {
             unit: 'mm',
             format: 'a4',
             orientation: 'portrait'
         },
-
-        pagebreak: {
-            mode: ['css', 'legacy'],
-            avoid: ['.text']
+        // 🔥 FIX: Added 'avoid' to the specific line class
+        pagebreak: { 
+            mode: ['css', 'legacy'], 
+            avoid: '.handwriting-line' 
         }
+    };
 
-    }).from(element).save();
+    html2pdf().set(opt).from(element).save();
 }
 </script>
 
