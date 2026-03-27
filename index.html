@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handwriter Perfect Final</title>
+<title>Handwriter Perfect Ultimate</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,7 +21,6 @@ body {
     padding: 20px;
 }
 
-/* UI */
 .controls {
     background: #fff;
     padding: 20px;
@@ -38,25 +37,21 @@ textarea {
     padding: 10px;
 }
 
-/* SCROLL */
 #paper-wrapper {
     display: none;
     max-height: 80vh;
     overflow-y: auto;
 }
 
-/* PAGE */
 .page {
     width: 210mm;
     height: 297mm;
     background: #fff;
     position: relative;
     margin-bottom: 20px;
-    box-sizing: border-box;
     overflow: hidden;
 }
 
-/* LINES */
 .lines {
     position: absolute;
     top: 40px;
@@ -70,7 +65,6 @@ textarea {
     background-size: 100% var(--line-height);
 }
 
-/* MARGIN */
 .margin {
     position: absolute;
     left: 65px;
@@ -79,15 +73,13 @@ textarea {
     background: red;
 }
 
-/* TEXT */
 .text {
     font-family: 'Caveat', cursive;
     font-size: 26px;
     color: #1a3c8e;
     line-height: var(--line-height);
     padding: 40px 40px 0 75px;
-    white-space: pre-wrap; /* 🔥 IMPORTANT */
-    word-wrap: break-word;
+    white-space: pre-wrap;
 }
 </style>
 </head>
@@ -96,7 +88,7 @@ textarea {
 
 <div class="controls">
     <h2>Handwriter Perfect ✅</h2>
-    <textarea id="input" placeholder="Type or paste your content..."></textarea><br><br>
+    <textarea id="input"></textarea><br><br>
     <button onclick="generate()">Preview</button>
     <button onclick="downloadPDF()">Download PDF</button>
 </div>
@@ -112,45 +104,36 @@ function generate() {
     wrapper.innerHTML = "";
     wrapper.style.display = "block";
 
-    let page = createPage();
-    let textBox = page.querySelector(".text");
+    let remainingText = text;
 
-    // 🔥 FULL TEXT NODE (NOT WORD SPLIT)
-    const content = document.createElement("div");
-    content.innerText = text;
-    textBox.appendChild(content);
+    while (remainingText.length > 0) {
 
-    // 🔥 CHECK OVERFLOW AND SPLIT
-    while (textBox.scrollHeight > textBox.clientHeight) {
+        const page = createPage();
+        const textBox = page.querySelector(".text");
 
-        let words = content.innerText.split(" ");
-        content.innerText = "";
+        const temp = document.createElement("div");
+        textBox.appendChild(temp);
 
-        let temp = "";
-        let lastGood = "";
+        let words = remainingText.split(" ");
+        let fittedText = "";
+        let usedWords = 0;
 
-        for (let word of words) {
-            temp += word + " ";
-            content.innerText = temp;
+        for (let i = 0; i < words.length; i++) {
+            let test = fittedText + words[i] + " ";
+            temp.innerText = test;
 
-            if (textBox.scrollHeight > textBox.clientHeight) {
+            if (textBox.scrollHeight > textBox.clientHeight - 40) {
                 break;
             }
-            lastGood = temp;
+
+            fittedText = test;
+            usedWords = i + 1;
         }
 
-        // remove overflow text
-        content.innerText = lastGood.trim();
+        temp.innerText = fittedText.trim();
 
-        // create next page
-        page = createPage();
-        textBox = page.querySelector(".text");
-
-        const newContent = document.createElement("div");
-        newContent.innerText = words.join(" ").replace(lastGood.trim(), "").trim();
-        textBox.appendChild(newContent);
-
-        content.innerText = newContent.innerText;
+        // remove used words
+        remainingText = words.slice(usedWords).join(" ");
     }
 
     function createPage() {
