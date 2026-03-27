@@ -1,124 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handwriter - Preview Fix ✅</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&family=Shadows+Into+Light&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handwriter Final Perfect</title>
 
-    <style>
-        :root { --ink-color: #1a3c8e; }
-        body { background-color: #2c3e50; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        
-        .controls { background: white; padding: 20px; border-radius: 12px; width: 95%; max-width: 650px; margin-bottom: 25px; text-align: center; }
-        textarea { width: 100%; height: 100px; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+<link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-        .btn { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; margin: 5px; }
-        .btn-gen { background: #27ae60; }
-        .btn-pdf { background: #2980b9; }
+<style>
+:root {
+    --line-height: 34px;
+}
 
-        /* Preview Area Fix */
-        #paper-container { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            width: 100%; 
-        }
-        
-        .paper-page {
-            width: 210mm;
-            min-height: 297mm;
-            background-color: #fff;
-            padding: 50px 60px;
-            box-sizing: border-box;
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
-            margin-bottom: 30px;
-            position: relative;
-            display: block; /* Ensures visibility */
-        }
+body {
+    background: #2c3e50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
 
-        .paper-pure-white { background-color: #ffffff !important; }
-        .paper-cream { background-color: #fdf6e3 !important; }
+/* UI */
+.controls {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 95%;
+    max-width: 600px;
+    margin-bottom: 20px;
+    text-align: center;
+}
 
-        .output-text {
-            font-size: 26px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            color: var(--ink-color);
-            filter: blur(0.15px);
-            word-wrap: break-word;
-            text-align: left;
-        }
-    </style>
+textarea {
+    width: 100%;
+    height: 120px;
+    padding: 10px;
+}
+
+/* SCROLL PREVIEW */
+#paper-wrapper {
+    display: none;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* PAGE */
+.page {
+    width: 210mm;
+    height: 297mm;
+    background: #fff;
+    position: relative;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    page-break-after: always;
+}
+
+.page:last-child {
+    page-break-after: auto;
+}
+
+/* LINES */
+.lines {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(
+        transparent calc(var(--line-height) - 1px),
+        #b5c9e8 1px
+    );
+    background-size: 100% var(--line-height);
+}
+
+/* MARGIN */
+.margin {
+    position: absolute;
+    left: 65px;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background: red;
+}
+
+/* TEXT */
+.text {
+    font-family: 'Caveat', cursive;
+    font-size: 26px;
+    color: #1a3c8e;
+    line-height: var(--line-height);
+    padding: 40px 40px 0 75px;
+    white-space: pre-wrap;
+}
+
+/* LINE */
+.handwriting-line {
+    display: block;
+}
+</style>
 </head>
+
 <body>
 
-    <div class="controls">
-        <h2>Handwriter - Preview Fix ✅</h2>
-        <textarea id="userInput" placeholder="Matter ikkada paste chey bro..."></textarea>
-        
-        <div style="margin-bottom:15px;">
-            <select id="fontStyle">
-                <option value="'Caveat', cursive">Clean Pen</option>
-                <option value="'Homemade Apple', cursive">Messy Cursive</option>
-            </select>
-            <select id="paperType">
-                <option value="paper-pure-white">Pure White</option>
-                <option value="paper-cream">Cream Paper</option>
-            </select>
-        </div>
+<div class="controls">
+    <h2>Handwriter Perfect ✅</h2>
+    <textarea id="input" placeholder="Type or paste your content..."></textarea><br><br>
+    <button onclick="generate()">Preview</button>
+    <button onclick="downloadPDF()">Download PDF</button>
+</div>
 
-        <button class="btn btn-gen" onclick="generate()">Preview Pages</button>
-        <button class="btn btn-pdf" onclick="savePDF()">Download PDF</button>
-    </div>
-
-    <div id="paper-container"></div>
+<div id="paper-wrapper"></div>
 
 <script>
-    function generate() {
-        const text = document.getElementById('userInput').value;
-        if(!text) return alert("Text rayi bro!");
+function generate() {
+    const text = document.getElementById("input").value;
+    if (!text) return alert("Matter rayi bro!");
 
-        const container = document.getElementById('paper-container');
-        container.innerHTML = ""; // Clear old preview
+    const wrapper = document.getElementById("paper-wrapper");
+    wrapper.innerHTML = "";
+    wrapper.style.display = "block";
 
-        [span_2](start_span)[span_3](start_span)// Paging Logic[span_2](end_span)[span_3](end_span)
-        const lines = text.split('\n');
-        const linesPerPage = 23; [span_4](start_span)// Fixed lines per page to prevent cutting[span_4](end_span)
-        
-        for (let i = 0; i < lines.length; i += linesPerPage) {
-            const pageDiv = document.createElement('div');
-            pageDiv.className = 'paper-page ' + document.getElementById('paperType').value;
-            
-            const textDiv = document.createElement('div');
-            textDiv.className = 'output-text';
-            textDiv.style.fontFamily = document.getElementById('fontStyle').value;
-            
-            const pageText = lines.slice(i, i + linesPerPage).join('\n');
-            textDiv.innerText = pageText;
-            
-            pageDiv.appendChild(textDiv);
-            container.appendChild(pageDiv);
+    const lines = text.split("\n");
+
+    const MAX_LINES = 30; // 🔥 SAFE (2 lines leave)
+    let count = 0;
+    let page = createPage();
+
+    lines.forEach(line => {
+
+        if (count >= MAX_LINES) {
+            page = createPage();
+            count = 0;
         }
-        
-        // Auto-scroll to preview
-        container.scrollIntoView({ behavior: 'smooth' });
-    }
 
-    function savePDF() {
-        const element = document.getElementById('paper-container');
-        if(!element.innerHTML) return alert("Mundu Preview generate chey!");
+        const span = document.createElement("span");
+        span.className = "handwriting-line";
+        span.innerHTML = line || "&nbsp;";
 
-        html2pdf().set({
-            margin: 0,
-            filename: 'Handwritten_Record.pdf',
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).from(element).save();
+        page.querySelector(".text").appendChild(span);
+        count++;
+    });
+
+    function createPage() {
+        const page = document.createElement("div");
+        page.className = "page";
+
+        page.innerHTML = `
+            <div class="lines"></div>
+            <div class="margin"></div>
+            <div class="text"></div>
+        `;
+
+        wrapper.appendChild(page);
+        return page;
     }
+}
+
+function downloadPDF() {
+    const element = document.getElementById("paper-wrapper");
+
+    const opt = {
+        margin: 0,
+        filename: "handwritten.pdf",
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+
+        pagebreak: {
+            mode: ['css', 'legacy']
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
 </script>
 
 </body>
