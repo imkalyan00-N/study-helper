@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handwriter Pro Final</title>
+<title>Handwriter Perfect Final</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,7 +21,6 @@ body {
     padding: 20px;
 }
 
-/* UI */
 .controls {
     background: #fff;
     padding: 20px;
@@ -38,7 +37,7 @@ textarea {
     padding: 10px;
 }
 
-/* SCROLL PREVIEW */
+/* SCROLL */
 #paper-wrapper {
     display: none;
     max-height: 80vh;
@@ -53,7 +52,7 @@ textarea {
     position: relative;
     margin-bottom: 20px;
     box-sizing: border-box;
-    page-break-after: always;
+    overflow: hidden;
 }
 
 /* LINES */
@@ -89,7 +88,6 @@ textarea {
     white-space: pre-wrap;
 }
 
-/* LINE */
 .handwriting-line {
     display: block;
 }
@@ -100,7 +98,7 @@ textarea {
 
 <div class="controls">
     <h2>Handwriter Perfect ✅</h2>
-    <textarea id="input" placeholder="Type or paste your content..."></textarea><br><br>
+    <textarea id="input"></textarea><br><br>
     <button onclick="generate()">Preview</button>
     <button onclick="downloadPDF()">Download PDF</button>
 </div>
@@ -110,31 +108,34 @@ textarea {
 <script>
 function generate() {
     const text = document.getElementById("input").value;
-    if (!text) return alert("Matter rayi bro!");
+    if (!text) return alert("Enter text bro");
 
     const wrapper = document.getElementById("paper-wrapper");
     wrapper.innerHTML = "";
     wrapper.style.display = "block";
 
-    const lines = text.split("\n");
+    const words = text.split(" ");
 
-    const MAX_LINES = 31; // 🔥 perfect fit
-    let lineCount = 0;
     let page = createPage();
+    let textBox = page.querySelector(".text");
 
-    lines.forEach(line => {
-
-        if (lineCount >= MAX_LINES) {
-            page = createPage();
-            lineCount = 0;
-        }
+    words.forEach(word => {
 
         const span = document.createElement("span");
-        span.className = "handwriting-line";
-        span.innerHTML = line || "&nbsp;";
+        span.innerText = word + " ";
+        textBox.appendChild(span);
 
-        page.querySelector(".text").appendChild(span);
-        lineCount++;
+        // 🔥 HEIGHT CHECK (REAL FIX)
+        if (textBox.scrollHeight > textBox.clientHeight - 60) {
+            textBox.removeChild(span); // remove overflow word
+
+            page = createPage();
+            textBox = page.querySelector(".text");
+
+            const newSpan = document.createElement("span");
+            newSpan.innerText = word + " ";
+            textBox.appendChild(newSpan);
+        }
     });
 
     function createPage() {
@@ -155,15 +156,13 @@ function generate() {
 function downloadPDF() {
     const element = document.getElementById("paper-wrapper");
 
-    const opt = {
+    html2pdf().set({
         margin: 0,
         filename: "handwritten.pdf",
         image: { type: 'jpeg', quality: 1 },
         html2canvas: { scale: 3 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).save();
+        jsPDF: { unit: 'mm', format: 'a4' }
+    }).from(element).save();
 }
 </script>
 
