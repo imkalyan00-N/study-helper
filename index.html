@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handwriter - bro enjoy</title>
+    <title>Handwriter - Preview Fix ✅</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&family=Shadows+Into+Light&family=Reenie+Beanie&family=Nanum+Pen+Script&family=Just+Me+Again+Down+Here&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Homemade+Apple&family=Shadows+Into+Light&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -19,7 +19,13 @@
         .btn-gen { background: #27ae60; }
         .btn-pdf { background: #2980b9; }
 
-        #paper-container { width: 210mm; display: none; }
+        /* Preview Area Fix */
+        #paper-container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            width: 100%; 
+        }
         
         .paper-page {
             width: 210mm;
@@ -28,14 +34,13 @@
             padding: 50px 60px;
             box-sizing: border-box;
             box-shadow: 0 0 20px rgba(0,0,0,0.3);
-            margin-bottom: 20px;
-            page-break-after: always;
+            margin-bottom: 30px;
             position: relative;
+            display: block; /* Ensures visibility */
         }
 
         .paper-pure-white { background-color: #ffffff !important; }
         .paper-cream { background-color: #fdf6e3 !important; }
-        .paper-grey { background-color: #f4f4f4 !important; }
 
         .output-text {
             font-size: 26px;
@@ -44,28 +49,24 @@
             color: var(--ink-color);
             filter: blur(0.15px);
             word-wrap: break-word;
+            text-align: left;
         }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h2>Handwriter - No Cut Edition ✅</h2>
-        <textarea id="userInput" placeholder="Paste your answer here..."></textarea>
+        <h2>Handwriter - Preview Fix ✅</h2>
+        <textarea id="userInput" placeholder="Matter ikkada paste chey bro..."></textarea>
         
         <div style="margin-bottom:15px;">
             <select id="fontStyle">
                 <option value="'Caveat', cursive">Clean Pen</option>
                 <option value="'Homemade Apple', cursive">Messy Cursive</option>
             </select>
-            <select id="inkColor">
-                <option value="#1a3c8e">Blue Ink</option>
-                <option value="#222222">Black Ink</option>
-            </select>
             <select id="paperType">
                 <option value="paper-pure-white">Pure White</option>
                 <option value="paper-cream">Cream Paper</option>
-                <option value="paper-grey">Grey Paper</option>
             </select>
         </div>
 
@@ -78,14 +79,14 @@
 <script>
     function generate() {
         const text = document.getElementById('userInput').value;
-        if(!text) return;
+        if(!text) return alert("Text rayi bro!");
 
         const container = document.getElementById('paper-container');
-        container.innerHTML = "";
-        container.style.display = 'block';
+        container.innerHTML = ""; // Clear old preview
 
+        [span_2](start_span)[span_3](start_span)// Paging Logic[span_2](end_span)[span_3](end_span)
         const lines = text.split('\n');
-        const linesPerPage = 22; [span_4](start_span)//[span_4](end_span) Matches A4 height limit
+        const linesPerPage = 23; [span_4](start_span)// Fixed lines per page to prevent cutting[span_4](end_span)
         
         for (let i = 0; i < lines.length; i += linesPerPage) {
             const pageDiv = document.createElement('div');
@@ -94,7 +95,6 @@
             const textDiv = document.createElement('div');
             textDiv.className = 'output-text';
             textDiv.style.fontFamily = document.getElementById('fontStyle').value;
-            textDiv.style.color = document.getElementById('inkColor').value;
             
             const pageText = lines.slice(i, i + linesPerPage).join('\n');
             textDiv.innerText = pageText;
@@ -102,13 +102,18 @@
             pageDiv.appendChild(textDiv);
             container.appendChild(pageDiv);
         }
+        
+        // Auto-scroll to preview
+        container.scrollIntoView({ behavior: 'smooth' });
     }
 
     function savePDF() {
         const element = document.getElementById('paper-container');
+        if(!element.innerHTML) return alert("Mundu Preview generate chey!");
+
         html2pdf().set({
             margin: 0,
-            filename: 'No_Cut_Assignment.pdf',
+            filename: 'Handwritten_Record.pdf',
             image: { type: 'jpeg', quality: 1 },
             html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
