@@ -21,6 +21,7 @@ body {
     padding: 20px;
 }
 
+/* UI */
 .controls {
     background: #fff;
     padding: 20px;
@@ -85,11 +86,8 @@ textarea {
     color: #1a3c8e;
     line-height: var(--line-height);
     padding: 40px 40px 0 75px;
-    white-space: pre-wrap;
-}
-
-.handwriting-line {
-    display: block;
+    white-space: pre-wrap; /* 🔥 IMPORTANT */
+    word-wrap: break-word;
 }
 </style>
 </head>
@@ -98,7 +96,7 @@ textarea {
 
 <div class="controls">
     <h2>Handwriter Perfect ✅</h2>
-    <textarea id="input"></textarea><br><br>
+    <textarea id="input" placeholder="Type or paste your content..."></textarea><br><br>
     <button onclick="generate()">Preview</button>
     <button onclick="downloadPDF()">Download PDF</button>
 </div>
@@ -114,29 +112,46 @@ function generate() {
     wrapper.innerHTML = "";
     wrapper.style.display = "block";
 
-    const words = text.split(" ");
-
     let page = createPage();
     let textBox = page.querySelector(".text");
 
-    words.forEach(word => {
+    // 🔥 FULL TEXT NODE (NOT WORD SPLIT)
+    const content = document.createElement("div");
+    content.innerText = text;
+    textBox.appendChild(content);
 
-        const span = document.createElement("span");
-        span.innerText = word + " ";
-        textBox.appendChild(span);
+    // 🔥 CHECK OVERFLOW AND SPLIT
+    while (textBox.scrollHeight > textBox.clientHeight) {
 
-        // 🔥 HEIGHT CHECK (REAL FIX)
-        if (textBox.scrollHeight > textBox.clientHeight - 60) {
-            textBox.removeChild(span); // remove overflow word
+        let words = content.innerText.split(" ");
+        content.innerText = "";
 
-            page = createPage();
-            textBox = page.querySelector(".text");
+        let temp = "";
+        let lastGood = "";
 
-            const newSpan = document.createElement("span");
-            newSpan.innerText = word + " ";
-            textBox.appendChild(newSpan);
+        for (let word of words) {
+            temp += word + " ";
+            content.innerText = temp;
+
+            if (textBox.scrollHeight > textBox.clientHeight) {
+                break;
+            }
+            lastGood = temp;
         }
-    });
+
+        // remove overflow text
+        content.innerText = lastGood.trim();
+
+        // create next page
+        page = createPage();
+        textBox = page.querySelector(".text");
+
+        const newContent = document.createElement("div");
+        newContent.innerText = words.join(" ").replace(lastGood.trim(), "").trim();
+        textBox.appendChild(newContent);
+
+        content.innerText = newContent.innerText;
+    }
 
     function createPage() {
         const page = document.createElement("div");
