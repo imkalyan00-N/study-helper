@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handwriter Final Perfect</title>
+<title>Handwriter Ultimate Fix</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,7 +21,6 @@ body {
     padding: 20px;
 }
 
-/* UI */
 .controls {
     background: #fff;
     padding: 20px;
@@ -38,11 +37,8 @@ textarea {
     padding: 10px;
 }
 
-/* SCROLL PREVIEW */
 #paper-wrapper {
     display: none;
-    max-height: 80vh;
-    overflow-y: auto;
 }
 
 /* PAGE */
@@ -53,11 +49,7 @@ textarea {
     position: relative;
     margin-bottom: 20px;
     box-sizing: border-box;
-    page-break-after: always;
-}
-
-.page:last-child {
-    page-break-after: auto;
+    overflow: hidden;
 }
 
 /* LINES */
@@ -78,7 +70,6 @@ textarea {
 .margin {
     position: absolute;
     left: 65px;
-    top: 0;
     width: 1px;
     height: 100%;
     background: red;
@@ -94,7 +85,6 @@ textarea {
     white-space: pre-wrap;
 }
 
-/* LINE */
 .handwriting-line {
     display: block;
 }
@@ -123,13 +113,13 @@ function generate() {
 
     const lines = text.split("\n");
 
-    const MAX_LINES = 30; // 🔥 SAFE (2 lines leave)
+    const MAX_LINES = 30; // 🔥 2 lines safety
     let count = 0;
     let page = createPage();
 
     lines.forEach(line => {
 
-        if (count >= MAX_LINES) {
+        if (count === MAX_LINES) {
             page = createPage();
             count = 0;
         }
@@ -165,11 +155,7 @@ function downloadPDF() {
         filename: "handwritten.pdf",
         image: { type: 'jpeg', quality: 1 },
         html2canvas: { scale: 3 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-
-        pagebreak: {
-            mode: ['css', 'legacy']
-        }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(element).save();
