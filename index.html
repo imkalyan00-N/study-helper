@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handwriter Ultimate Fix</title>
+<title>Handwriter Pro Final</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,6 +21,7 @@ body {
     padding: 20px;
 }
 
+/* UI */
 .controls {
     background: #fff;
     padding: 20px;
@@ -37,8 +38,11 @@ textarea {
     padding: 10px;
 }
 
+/* SCROLL PREVIEW */
 #paper-wrapper {
     display: none;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 /* PAGE */
@@ -49,7 +53,7 @@ textarea {
     position: relative;
     margin-bottom: 20px;
     box-sizing: border-box;
-    overflow: hidden;
+    page-break-after: always;
 }
 
 /* LINES */
@@ -85,6 +89,7 @@ textarea {
     white-space: pre-wrap;
 }
 
+/* LINE */
 .handwriting-line {
     display: block;
 }
@@ -113,15 +118,15 @@ function generate() {
 
     const lines = text.split("\n");
 
-    const MAX_LINES = 30; // 🔥 2 lines safety
-    let count = 0;
+    const MAX_LINES = 31; // 🔥 perfect fit
+    let lineCount = 0;
     let page = createPage();
 
     lines.forEach(line => {
 
-        if (count === MAX_LINES) {
+        if (lineCount >= MAX_LINES) {
             page = createPage();
-            count = 0;
+            lineCount = 0;
         }
 
         const span = document.createElement("span");
@@ -129,7 +134,7 @@ function generate() {
         span.innerHTML = line || "&nbsp;";
 
         page.querySelector(".text").appendChild(span);
-        count++;
+        lineCount++;
     });
 
     function createPage() {
