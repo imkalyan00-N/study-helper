@@ -1,100 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handwriter Perfect Ultimate</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-<style>
-:root {
-    --line-height: 34px;
-}
-
-body {
-    background: #2c3e50;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-}
-
-.controls {
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    width: 95%;
-    max-width: 600px;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-textarea {
-    width: 100%;
-    height: 120px;
-    padding: 10px;
-}
-
-#paper-wrapper {
-    display: none;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.page {
-    width: 210mm;
-    height: 297mm;
-    background: #fff;
-    position: relative;
-    margin-bottom: 20px;
-    overflow: hidden;
-}
-
-.lines {
-    position: absolute;
-    top: 40px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: linear-gradient(
-        transparent calc(var(--line-height) - 1px),
-        #b5c9e8 1px
-    );
-    background-size: 100% var(--line-height);
-}
-
-.margin {
-    position: absolute;
-    left: 65px;
-    width: 1px;
-    height: 100%;
-    background: red;
-}
-
-.text {
-    font-family: 'Caveat', cursive;
-    font-size: 26px;
-    color: #1a3c8e;
-    line-height: var(--line-height);
-    padding: 40px 40px 0 75px;
-    white-space: pre-wrap;
-}
-</style>
-</head>
-
-<body>
-
-<div class="controls">
-    <h2>Handwriter Perfect ✅</h2>
-    <textarea id="input"></textarea><br><br>
-    <button onclick="generate()">Preview</button>
-    <button onclick="downloadPDF()">Download PDF</button>
-</div>
-
-<div id="paper-wrapper"></div>
-
 <script>
 function generate() {
     const text = document.getElementById("input").value;
@@ -104,37 +7,27 @@ function generate() {
     wrapper.innerHTML = "";
     wrapper.style.display = "block";
 
-    let remainingText = text;
+    let words = text.split(" ");
+    let currentPage = createPage();
+    let textBox = currentPage.querySelector(".text");
 
-    while (remainingText.length > 0) {
+    let line = "";
 
-        const page = createPage();
-        const textBox = page.querySelector(".text");
+    words.forEach((word, index) => {
+        let testLine = line + word + " ";
+        textBox.innerText = testLine;
 
-        const temp = document.createElement("div");
-        textBox.appendChild(temp);
-
-        let words = remainingText.split(" ");
-        let fittedText = "";
-        let usedWords = 0;
-
-        for (let i = 0; i < words.length; i++) {
-            let test = fittedText + words[i] + " ";
-            temp.innerText = test;
-
-            if (textBox.scrollHeight > textBox.clientHeight - 40) {
-                break;
-            }
-
-            fittedText = test;
-            usedWords = i + 1;
+        if (textBox.scrollHeight > textBox.clientHeight) {
+            // new page
+            currentPage = createPage();
+            textBox = currentPage.querySelector(".text");
+            line = word + " ";
+        } else {
+            line = testLine;
         }
 
-        temp.innerText = fittedText.trim();
-
-        // remove used words
-        remainingText = words.slice(usedWords).join(" ");
-    }
+        textBox.innerText = line;
+    });
 
     function createPage() {
         const page = document.createElement("div");
@@ -150,19 +43,4 @@ function generate() {
         return page;
     }
 }
-
-function downloadPDF() {
-    const element = document.getElementById("paper-wrapper");
-
-    html2pdf().set({
-        margin: 0,
-        filename: "handwritten.pdf",
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 3 },
-        jsPDF: { unit: 'mm', format: 'a4' }
-    }).from(element).save();
-}
 </script>
-
-</body>
-</html>
