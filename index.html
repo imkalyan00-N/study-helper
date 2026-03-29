@@ -2,30 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Professional Text to Handwriting</title>
     
-    <!-- Tailwind CSS for UI Layout -->
+    <!-- Tailwind CSS UI -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- html2pdf.js for PDF Generation -->
+    <!-- PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- Google Fonts for Handwriting -->
+    <!-- Google Fonts - Added 4 new fonts for B.Tech students -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Homemade+Apple&family=Reenie+Beanie&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat:wght@500;600&family=Homemade+Apple&family=Indie+Flower&family=Kalam&family=Patrick+Hand&family=Reenie+Beanie&family=Shadows+Into+Light&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --line-height: 34px;
+            /* STRICT MATHEMATICAL GRID - 32px Fix */
+            --grid-size: 32px; 
             --page-width: 794px;
-            --page-height: 1123px; /* Standard A4 at 96 DPI */
+            --page-height: 1123px; /* A4 Ratio */
         }
 
-        body {
+        html, body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f3f4f6;
+            background-color: #e5e7eb;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
 
         /* --- Paper Styles --- */
@@ -41,263 +44,264 @@
             box-sizing: border-box;
         }
 
-        /* Ruled Paper: SVG background guarantees perfect PDF scaling without gradient artifacts */
-        .paper-ruled {
-            background-color: #ffffff;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="34"><line x1="0" y1="33" x2="100" y2="33" stroke="%238cb1da" stroke-width="1.2"/></svg>');
-            background-size: 100% var(--line-height);
-        }
-
-        /* Red Margin Line */
-        .paper-ruled::before {
-            content: '';
-            position: absolute;
-            left: 100px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background-color: rgba(224, 108, 117, 0.8);
-            z-index: 1;
-        }
-
-        .paper-plain {
-            background-color: #ffffff;
-        }
+        .paper-plain { background-color: #ffffff; }
 
         .paper-rough {
             background-color: #fdfbf7;
-            /* Subtle texture */
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.04"/></svg>');
         }
 
-        /* --- Text Container --- */
+        /* --- Text Container (RIGID GRID) --- */
         .text-layer {
             position: absolute;
-            /* Start exactly on a line multiple (34 * 2 = 68px) */
-            top: 68px; 
-            bottom: var(--line-height);
-            left: 115px; /* Sit comfortably right of the 100px margin */
+            bottom: auto;
+            left: 110px;
             right: 40px;
-            line-height: var(--line-height);
-            z-index: 2;
+            
+            /* CRITICAL: Locks text spacing perfectly to the grid */
+            line-height: var(--grid-size) !important; 
+            margin: 0 !important;
+            padding: 0 !important;
+            
+            z-index: 10;
             word-wrap: break-word;
-            white-space: pre-wrap; /* Respect newlines and spaces */
+            white-space: pre-wrap; 
             outline: none;
+            display: block;
+
+            -webkit-text-size-adjust: none !important;
+            text-size-adjust: none !important;
         }
 
-        /* --- Typography Classes --- */
+        /* --- Typography (8 Fonts) --- */
         .font-caveat { font-family: 'Caveat', cursive; font-size: 26px; }
-        .font-homemade { font-family: 'Homemade Apple', cursive; font-size: 18px; }
-        .font-shadows { font-family: 'Shadows Into Light', cursive; font-size: 24px; }
-        .font-reenie { font-family: 'Reenie Beanie', cursive; font-size: 28px; }
+        .font-homemade { font-family: 'Homemade Apple', cursive; font-size: 14px; } 
+        .font-shadows { font-family: 'Shadows Into Light', cursive; font-size: 22px; }
+        .font-reenie { font-family: 'Reenie Beanie', cursive; font-size: 26px; }
+        
+        /* NEW FONTS */
+        .font-patrick { font-family: 'Patrick Hand', cursive; font-size: 22px; }
+        .font-kalam { font-family: 'Kalam', cursive; font-size: 20px; }
+        .font-indie { font-family: 'Indie Flower', cursive; font-size: 22px; }
+        .font-architects { font-family: 'Architects Daughter', cursive; font-size: 20px; }
 
         .color-blue { color: #1a3c8e; }
         .color-black { color: #222222; }
         .color-red { color: #c0392b; }
 
         /* --- PDF Export State --- */
-        /* Removes shadows and gaps during html2pdf snapshot to ensure flawless pages */
         .exporting .a4-page {
             box-shadow: none !important;
-            margin-bottom: 0 !important;
+            margin: 0 !important;
             border: none !important;
+            border-radius: 0 !important;
         }
         .exporting #preview-container {
             gap: 0 !important;
             padding: 0 !important;
             background: transparent !important;
+            width: var(--page-width) !important;
+        }
+        .exporting #scale-wrapper {
+            transform: none !important; 
+            width: auto !important;
         }
         
-        /* Custom scrollbar for control panel */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
     </style>
 </head>
-<body class="h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <!-- Control Panel (Left Sidebar) -->
-    <aside class="w-full md:w-[400px] bg-white shadow-2xl z-20 flex flex-col h-full">
-        <div class="p-6 border-b border-gray-100">
-            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <!-- Controls Sidebar -->
+    <aside class="w-full md:w-[350px] bg-white shadow-2xl z-20 flex flex-col shrink-0 md:h-screen md:sticky md:top-0 overflow-y-auto">
+        <div class="p-5 border-b border-gray-100">
+            <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 Handwriting Studio
             </h1>
-            <p class="text-sm text-gray-500 mt-1">Convert digital text to realistic handwritten notes.</p>
         </div>
 
-        <div class="p-6 flex-grow overflow-y-auto space-y-6">
-            
-            <!-- Text Input -->
+        <div class="p-5 space-y-5">
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Your Text</label>
-                <textarea id="input-text" rows="8" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-y text-sm" placeholder="Paste your essay, notes, or assignment here..."></textarea>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Mee Text (Your Text)</label>
+                <textarea id="input-text" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none text-sm" placeholder="Paste your assignment/record text here..."></textarea>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <!-- Font Selection -->
+            <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Handwriting Font</label>
-                    <select id="font-select" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
-                        <option value="font-caveat">Caveat (Neat)</option>
-                        <option value="font-shadows">Shadows Into Light</option>
-                        <option value="font-homemade">Homemade Apple (Cursive)</option>
-                        <option value="font-reenie">Reenie Beanie (Scratchy)</option>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Writing Style</label>
+                    <select id="font-select" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                        <optgroup label="B.Tech / Assignments">
+                            <option value="font-patrick">Engineering Neat</option>
+                            <option value="font-kalam">Fast Notes</option>
+                            <option value="font-indie">Casual Record</option>
+                            <option value="font-architects">Assignment Clean</option>
+                        </optgroup>
+                        <optgroup label="Classic Styles">
+                            <option value="font-caveat">Normal Handwriting</option>
+                            <option value="font-shadows">Neat Print</option>
+                            <option value="font-homemade">Cursive Writing</option>
+                            <option value="font-reenie">Rough Scribble</option>
+                        </optgroup>
                     </select>
                 </div>
-
-                <!-- Ink Color -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Ink Color</label>
-                    <select id="color-select" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Ink Color</label>
+                    <select id="color-select" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white">
                         <option value="color-blue">Royal Blue</option>
                         <option value="color-black">Jet Black</option>
-                        <option value="color-red">Correction Red</option>
+                        <option value="color-red">Red</option>
                     </select>
                 </div>
             </div>
 
-            <!-- Paper Type -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Paper Type</label>
-                <div class="flex gap-3">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Paper</label>
+                <div class="flex gap-2">
                     <label class="flex-1 cursor-pointer relative">
                         <input type="radio" name="paper-type" value="paper-ruled" class="peer sr-only" checked>
-                        <div class="p-3 text-center border-2 border-gray-200 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all">
-                            <div class="w-full h-8 bg-white border border-gray-300 mb-1 mx-auto relative overflow-hidden">
-                                <div class="absolute top-1/2 left-0 right-0 h-px bg-blue-300"></div>
-                                <div class="absolute top-0 bottom-0 left-2 w-px bg-red-300"></div>
-                            </div>
-                            <span class="text-xs font-medium">Ruled</span>
+                        <div class="p-2 text-center border-2 border-gray-200 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all">
+                            <span class="text-xs font-semibold">Ruled</span>
                         </div>
                     </label>
                     <label class="flex-1 cursor-pointer relative">
                         <input type="radio" name="paper-type" value="paper-plain" class="peer sr-only">
-                        <div class="p-3 text-center border-2 border-gray-200 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all">
-                            <div class="w-full h-8 bg-white border border-gray-300 mb-1 mx-auto"></div>
-                            <span class="text-xs font-medium">Plain</span>
+                        <div class="p-2 text-center border-2 border-gray-200 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all">
+                            <span class="text-xs font-semibold">Plain</span>
                         </div>
                     </label>
                     <label class="flex-1 cursor-pointer relative">
                         <input type="radio" name="paper-type" value="paper-rough" class="peer sr-only">
-                        <div class="p-3 text-center border-2 border-gray-200 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all">
-                            <div class="w-full h-8 bg-[#fdfbf7] border border-gray-300 mb-1 mx-auto"></div>
-                            <span class="text-xs font-medium">Cream</span>
+                        <div class="p-2 text-center border-2 border-gray-200 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all">
+                            <span class="text-xs font-semibold">Cream</span>
                         </div>
                     </label>
                 </div>
             </div>
 
-            <!-- Advanced Tweaks -->
-            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="text-xs uppercase tracking-wider text-gray-500 font-bold mb-3">Alignment Tuning</h3>
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <label class="flex justify-between text-xs font-bold text-gray-700 mb-1">
+                    <span>Baseline Alignment (Y-Offset)</span>
+                    <span id="y-offset-val" class="font-mono text-xs text-blue-600">0px</span>
+                </label>
+                <input type="range" id="y-offset" min="-5" max="20" value="0" class="w-full accent-blue-600">
+                <p class="text-[10px] text-gray-500 mt-1">Text ni kinda ki push chesi blue line meeda perfect ga kurchobeditundi.</p>
                 
-                <div class="mb-3">
-                    <label class="flex justify-between text-sm text-gray-700 mb-1">
-                        <span>Baseline Y-Offset</span>
-                        <span id="y-offset-val" class="font-mono text-xs bg-white px-1 border rounded">0px</span>
-                    </label>
-                    <input type="range" id="y-offset" min="-15" max="15" value="0" class="w-full accent-blue-600">
-                    <p class="text-[10px] text-gray-400 mt-1 leading-tight">Use this to perfectly sit the ink on the blue lines if the font baseline varies.</p>
-                </div>
-
-                <div>
-                    <label class="flex justify-between text-sm text-gray-700 mb-1">
-                        <span>Word Spacing</span>
-                        <span id="spacing-val" class="font-mono text-xs bg-white px-1 border rounded">2px</span>
-                    </label>
-                    <input type="range" id="word-spacing" min="0" max="15" value="2" class="w-full accent-blue-600">
-                </div>
+                <label class="flex justify-between text-xs font-bold text-gray-700 mt-3 mb-1">
+                    <span>Word Spacing</span>
+                    <span id="spacing-val" class="font-mono text-xs text-blue-600">2px</span>
+                </label>
+                <input type="range" id="word-spacing" min="0" max="15" value="2" class="w-full accent-blue-600">
             </div>
 
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="p-6 border-t border-gray-100 bg-gray-50 space-y-3">
-            <button onclick="generatePreview()" class="w-full py-3 bg-gray-800 hover:bg-black text-white rounded-lg font-semibold shadow-md transition-all flex justify-center items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                Generate Preview
-            </button>
-            <button onclick="downloadPDF()" id="download-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-md transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Download PDF
-            </button>
+            <div class="pt-2 pb-6 border-t border-gray-100 flex gap-3">
+                <button onclick="generatePreview()" class="flex-1 py-3 bg-gray-800 hover:bg-black text-white rounded-lg font-bold text-sm shadow-md transition-all">
+                    Generate
+                </button>
+                <button onclick="downloadPDF()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-md transition-all">
+                    Save PDF
+                </button>
+            </div>
         </div>
     </aside>
 
-    <!-- Main Preview Area -->
-    <main class="flex-1 bg-gray-200 overflow-y-auto relative flex flex-col items-center">
-        <!-- Zoom wrapper for smaller screens -->
-        <div class="w-full flex justify-center p-4 md:p-8 min-h-full">
-            <!-- Scaling container to ensure 794px fixed width fits nicely on screen visually -->
-            <div style="transform-origin: top center; transform: scale(min(1, calc(100vw / 850)));" class="pb-10">
-                <div id="preview-container" class="flex flex-col gap-6">
-                    <!-- Pages will be generated here -->
+    <!-- Preview Area -->
+    <main class="flex-1 overflow-x-auto relative bg-gray-200 flex flex-col items-center">
+        <div class="w-full flex justify-center p-4 min-w-[max-content]">
+            <div id="scale-wrapper" style="transform-origin: top center; transform: scale(min(1, calc(100vw / 850)));" class="pb-10 transition-transform duration-300">
+                <div id="preview-container" class="flex flex-col gap-6 w-[794px]">
+                    <!-- Pages generated here -->
                 </div>
             </div>
         </div>
         
-        <!-- Loading Overlay -->
-        <div id="loader" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+        <div id="loader" class="hidden fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
             <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-            <p class="text-gray-800 font-semibold" id="loader-text">Processing pages...</p>
+            <p class="text-gray-800 font-bold" id="loader-text">Processing pages...</p>
         </div>
     </main>
 
     <script>
-        // --- Default Content ---
-        const defaultText = `Dear User,
-
-Welcome to the Text to Handwriting Studio! 
-
-This tool is engineered to map digital text perfectly onto ruled lines. Unlike basic tools, it calculates page dimensions and uses a smart word-wrap algorithm so your words are never cut in half at the bottom of the page. 
-
-Feel free to customize:
-- Handwriting Fonts (Caveat, Homemade Apple, etc.)
-- Ink Colors (Blue, Black, Red)
-- Paper Textures (Ruled, Plain, Cream)
-
-If the handwriting sits slightly above or below the blue line, simply use the "Baseline Y-Offset" slider in the advanced tweaks menu to perfectly sit the ink on the baseline.
-
-Click "Generate Preview" to apply your changes, and then download the final A4 multi-page document as a PDF.
-
-Happy writing!`;
+        const defaultText = `Matter type chey bro !`;
 
         document.getElementById('input-text').value = defaultText;
 
-        // --- Event Listeners for UI Updates ---
+        // Sliders
         document.getElementById('y-offset').addEventListener('input', (e) => {
             document.getElementById('y-offset-val').innerText = `${e.target.value}px`;
         });
-
         document.getElementById('word-spacing').addEventListener('input', (e) => {
             document.getElementById('spacing-val').innerText = `${e.target.value}px`;
         });
 
-        // Smart preset offsets for specific fonts to help user out of the box
+        // FIXED PRESETS FOR ALL 8 FONTS
         document.getElementById('font-select').addEventListener('change', (e) => {
             const yOffsetInput = document.getElementById('y-offset');
             switch(e.target.value) {
-                case 'font-caveat': yOffsetInput.value = -3; break;
-                case 'font-homemade': yOffsetInput.value = -6; break;
-                case 'font-shadows': yOffsetInput.value = -2; break;
-                case 'font-reenie': yOffsetInput.value = 1; break;
-                default: yOffsetInput.value = 0;
+                case 'font-caveat': yOffsetInput.value = 5; break;      
+                case 'font-homemade': yOffsetInput.value = 8; break;   
+                case 'font-shadows': yOffsetInput.value = 6; break;
+                case 'font-reenie': yOffsetInput.value = 5; break;
+                
+                // New B.Tech Fonts Presets
+                case 'font-patrick': yOffsetInput.value = 6; break;
+                case 'font-kalam': yOffsetInput.value = 4; break;
+                case 'font-indie': yOffsetInput.value = 6; break;
+                case 'font-architects': yOffsetInput.value = 8; break;
+                
+                default: yOffsetInput.value = 5;
             }
             document.getElementById('y-offset-val').innerText = `${yOffsetInput.value}px`;
         });
 
-        // Trigger initial preset offset
         document.getElementById('font-select').dispatchEvent(new Event('change'));
 
-        // --- Core Pagination Engine ---
-        function createNewPage(paperClass, fontClass, colorClass, yOffset, wordSpacing, pageNum) {
+        // --- MAX HEIGHT LOGIC ---
+        const MAX_HEIGHT = 1056; 
+
+        function createNewPage(paperClass, fontClass, colorClass, yOffset, wordSpacing) {
             const page = document.createElement('div');
             page.className = `a4-page ${paperClass}`;
             
+            // 1. Draw Real Absolute Lines for 100% PDF Sync
+            if (paperClass === 'paper-ruled') {
+                const bgLayer = document.createElement('div');
+                bgLayer.className = 'absolute inset-0 z-0 pointer-events-none';
+                
+                // Red Margin
+                const redMargin = document.createElement('div');
+                redMargin.style.position = 'absolute';
+                redMargin.style.left = '100px';
+                redMargin.style.top = '0';
+                redMargin.style.bottom = '0';
+                redMargin.style.width = '2px';
+                redMargin.style.backgroundColor = 'rgba(224, 108, 117, 0.8)';
+                bgLayer.appendChild(redMargin);
+
+                // EXACT Coordinate Blue Lines
+                for(let i = 1; i <= 34; i++) {
+                    const line = document.createElement('div');
+                    line.style.position = 'absolute';
+                    line.style.top = `${i * 32}px`; 
+                    line.style.left = '0';
+                    line.style.right = '0';
+                    line.style.height = '1px';
+                    line.style.backgroundColor = '#8cb1da';
+                    bgLayer.appendChild(line);
+                }
+                page.appendChild(bgLayer);
+            }
+            
+            // 2. Text Container
             const textContainer = document.createElement('div');
             textContainer.className = `text-layer ${fontClass} ${colorClass}`;
+            
+            textContainer.style.top = '32px'; 
+            
+            // Apply Offset
             textContainer.style.transform = `translateY(${yOffset}px)`;
             textContainer.style.wordSpacing = `${wordSpacing}px`;
             
@@ -310,45 +314,33 @@ Happy writing!`;
             const container = document.getElementById('preview-container');
             const loader = document.getElementById('loader');
             
-            if (!text) return alert('Please enter some text first.');
+            if (!text) return alert('Doya chesi text enter cheyyandi (Please enter text).');
 
-            // Show Loader
             loader.classList.remove('hidden');
-            // Small delay to allow UI to paint loader before heavy DOM calculation
             await new Promise(resolve => setTimeout(resolve, 50)); 
 
             container.innerHTML = '';
 
-            // Get Settings
             const font = document.getElementById('font-select').value;
             const color = document.getElementById('color-select').value;
             const paper = document.querySelector('input[name="paper-type"]:checked').value;
             const yOffset = document.getElementById('y-offset').value;
             const wordSpacing = document.getElementById('word-spacing').value;
 
-            // Split by paragraphs to preserve structural newlines
             const paragraphs = text.split('\n');
-
-            let pageNum = 1;
-            let current = createNewPage(paper, font, color, yOffset, wordSpacing, pageNum);
+            let current = createNewPage(paper, font, color, yOffset, wordSpacing);
             container.appendChild(current.page);
 
-            // Calculate Max Available Height
-            // Page is 1123px. Top offset is 68px. Bottom margin is 34px. 
-            const MAX_HEIGHT = 1123 - 68 - 34; 
-
             for (let p = 0; p < paragraphs.length; p++) {
-                // If paragraph is completely empty, it was a double newline
                 if (paragraphs[p] === "") {
-                    const br = document.createElement('br');
-                    current.textContainer.appendChild(br);
+                    const nl = document.createTextNode('\n');
+                    current.textContainer.appendChild(nl);
                     
                     if (current.textContainer.scrollHeight > MAX_HEIGHT) {
-                        br.remove();
-                        pageNum++;
-                        current = createNewPage(paper, font, color, yOffset, wordSpacing, pageNum);
+                        nl.remove();
+                        current = createNewPage(paper, font, color, yOffset, wordSpacing);
                         container.appendChild(current.page);
-                        current.textContainer.appendChild(document.createElement('br'));
+                        current.textContainer.appendChild(document.createTextNode('\n')); 
                     }
                     continue;
                 }
@@ -357,97 +349,90 @@ Happy writing!`;
 
                 for (let w = 0; w < words.length; w++) {
                     const word = words[w];
-                    const wordNode = document.createTextNode(word + ' ');
+                    const spacing = (w < words.length - 1) ? ' ' : '';
+                    const wordNode = document.createTextNode(word + spacing);
                     current.textContainer.appendChild(wordNode);
 
-                    // Check if appending this word caused container to exceed max height
                     if (current.textContainer.scrollHeight > MAX_HEIGHT) {
-                        // Backtrack: Remove the overflowed word
                         wordNode.remove();
-
-                        // Create a brand new A4 page
-                        pageNum++;
-                        current = createNewPage(paper, font, color, yOffset, wordSpacing, pageNum);
+                        current = createNewPage(paper, font, color, yOffset, wordSpacing);
                         container.appendChild(current.page);
-
-                        // Put the word on the new page
-                        current.textContainer.appendChild(document.createTextNode(word + ' '));
+                        current.textContainer.appendChild(document.createTextNode(word + spacing));
                     }
                 }
 
-                // Add newline after paragraph (unless it's the very last paragraph)
                 if (p < paragraphs.length - 1) {
-                    const br = document.createElement('br');
-                    current.textContainer.appendChild(br);
+                    const nl = document.createTextNode('\n');
+                    current.textContainer.appendChild(nl);
 
                     if (current.textContainer.scrollHeight > MAX_HEIGHT) {
-                        br.remove();
-                        pageNum++;
-                        current = createNewPage(paper, font, color, yOffset, wordSpacing, pageNum);
+                        nl.remove();
+                        current = createNewPage(paper, font, color, yOffset, wordSpacing);
                         container.appendChild(current.page);
                     }
                 }
             }
 
-            // Hide Loader
             loader.classList.add('hidden');
         }
 
-        // --- PDF Generation using html2pdf.js ---
+        // PDF Exporter
         function downloadPDF() {
             const container = document.getElementById('preview-container');
             const loader = document.getElementById('loader');
             const loaderText = document.getElementById('loader-text');
+            const scaleWrapper = document.getElementById('scale-wrapper');
             
             if (container.children.length === 0) {
-                alert("Please generate a preview first.");
+                alert('Mundu Generate button click cheyyandi (Click Generate first).');
                 return;
             }
 
-            loaderText.innerText = "Generating PDF Document...";
+            loaderText.innerText = "PDF generate avuthundi (Exporting Document)...";
             loader.classList.remove('hidden');
-
-            // Apply specific class to remove UI formatting (shadows, gaps) so PDF is flush
+            
             document.body.classList.add('exporting');
+            const originalTransform = scaleWrapper.style.transform;
+            scaleWrapper.style.transform = 'none'; 
 
-            // html2pdf Options
+            // Optimized PDF Options
             const opt = {
                 margin:       0,
-                filename:     'handwritten-document.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
+                filename:     'handwritten-notes.pdf',
+                image:        { type: 'jpeg', quality: 1.0 },
                 html2canvas:  { 
-                    scale: 2, // High resolution
+                    scale: 2, 
                     useCORS: true, 
-                    letterRendering: true,
-                    scrollY: 0 // Prevents scroll offset bugs
+                    scrollY: 0,
+                    windowWidth: 794 // STRICT A4 width mapped for PDF rendering
                 },
                 jsPDF:        { 
                     unit: 'px', 
-                    format: [794, 1123], // Hardcoded A4 pixel dimensions matching CSS
-                    orientation: 'portrait' 
-                },
-                pagebreak:    { mode: 'css', after: '.a4-page' }
+                    format: [794, 1123], 
+                    orientation: 'portrait',
+                    hotfixes: ["px_scaling"] // Fixes line drifting in jsPDF
+                }
             };
 
-            // Generate
             html2pdf().set(opt).from(container).save().then(() => {
-                // Cleanup
                 document.body.classList.remove('exporting');
+                scaleWrapper.style.transform = originalTransform;
                 loader.classList.add('hidden');
                 loaderText.innerText = "Processing pages...";
             }).catch(err => {
-                console.error("PDF Generation Error:", err);
+                console.error("PDF Error:", err);
                 document.body.classList.remove('exporting');
+                scaleWrapper.style.transform = originalTransform;
                 loader.classList.add('hidden');
-                alert("An error occurred while generating the PDF.");
+                alert("Oka error vachindi. Malli try cheyyandi (An error occurred).");
             });
         }
 
-        // Initialize layout on load
         window.addEventListener('DOMContentLoaded', () => {
             generatePreview();
         });
     </script>
 </body>
 </html>
+
 
