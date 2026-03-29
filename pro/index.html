@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handwriting PRO</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat&family=Homemade+Apple&family=Shadows+Into+Light&family=Reenie+Beanie&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="controls">
+<textarea id="inputText"></textarea>
+<select id="font"><option>Caveat</option><option>Homemade Apple</option><option>Shadows Into Light</option><option>Reenie Beanie</option></select>
+<select id="color"><option value="#1a3c8e">Blue</option><option value="#222">Black</option><option value="#c0392b">Red</option></select>
+<select id="paper"><option value="ruled">Ruled</option><option value="plain">Plain</option><option value="cream">Cream</option></select>
+<button onclick="generate()">Preview</button>
+<button onclick="downloadPDF()">PDF</button>
+</div>
+<div id="preview"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
