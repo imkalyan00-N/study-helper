@@ -1,8 +1,0 @@
-body{margin:0;background:#eee;font-family:sans-serif}
-.controls{background:#111;color:#fff;padding:10px;display:flex;gap:10px;flex-wrap:wrap}
-textarea{width:100%;height:100px}
-.page{width:794px;height:1123px;margin:20px auto;padding:60px 40px 40px 60px;box-sizing:border-box;page-break-after:always}
-.ruled{background:linear-gradient(to right,#ff4d4d 50px,transparent 50px),repeating-linear-gradient(to bottom,#fff 0px,#fff 34.5px,#cce0ff 34.5px,#cce0ff 35.5px);background-size:100% 35.5px}
-.plain{background:#fff}
-.cream{background:#fdf6e3}
-.content{line-height:34.5px;font-size:22px;white-space:pre-wrap;word-break:break-word}
